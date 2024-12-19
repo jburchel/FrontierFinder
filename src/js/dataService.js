@@ -1,4 +1,4 @@
-import { database } from './firebaseConfig.js';
+import { database } from './config.js';
 import { ref, get, set } from "https://www.gstatic.com/firebasejs/9.x.x/firebase-database.js";
 
 class DataService {
