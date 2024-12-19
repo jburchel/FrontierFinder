@@ -21,7 +21,7 @@ class DataService {
 
     async loadUPGsData() {
         try {
-            const response = await fetch('/data/existing_upgs_updated.csv');
+            const response = await fetch('../../data/existing_upgs_updated.csv');
             const csvText = await response.text();
             
             // Parse CSV
