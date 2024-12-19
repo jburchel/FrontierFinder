@@ -60,18 +60,23 @@ jobs:
           # Create deployment directory
           mkdir -p public
           
-          # Copy HTML files directly to root of public
+          # Copy HTML files to root
           cp src/html/*.html public/
           
-          # Ensure index.html is in the root
-          cp src/html/index.html public/index.html
+          # Create asset directories
+          mkdir -p public/css public/js public/data public/images
           
-          # Create directories and copy other assets
-          mkdir -p public/js public/css public/data public/images
-          cp -r src/js/* public/js/
+          # Copy assets
           cp -r src/css/* public/css/
+          cp -r src/js/* public/js/
           cp -r data/* public/data/
           cp -r images/* public/images/
+          
+          # Move index.html to root
+          cp public/index.html public/index.html
+          
+          # Create .nojekyll file to bypass Jekyll processing
+          touch public/.nojekyll
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
