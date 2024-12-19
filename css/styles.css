@@ -37,6 +37,17 @@ h1 {
     margin-bottom: 1rem;
 }
 
+.logo {
+    max-width: 200px;
+    height: auto;
+    margin-bottom: 1rem;
+}
+
+.logo-container {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
 /* Main Container */
 .container {
     max-width: 1200px;
