@@ -1,12 +1,12 @@
 // Firebase configuration
 const firebaseConfig = {
-    apiKey: '/usr/share/java/selenium-server.jar'FIREBASE_API_KEY,
-    authDomain: '/usr/share/java/selenium-server.jar'FIREBASE_AUTH_DOMAIN,
-    projectId: '/usr/share/java/selenium-server.jar'FIREBASE_PROJECT_ID,
-    databaseURL: '/usr/share/java/selenium-server.jar'FIREBASE_DATABASE_URL,
-    storageBucket: '/usr/share/java/selenium-server.jar'FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: '/usr/share/java/selenium-server.jar'FIREBASE_MESSAGING_SENDER_ID,
-    appId: '/usr/share/java/selenium-server.jar'FIREBASE_APP_ID
+    apiKey: "AIzaSyBtzaibXTCspENsEVaN8XF5DkuizsjxVX4",
+    authDomain: "crossover-people-finder.firebaseapp.com",
+    projectId: "crossover-people-finder",
+    databaseURL: "https://crossover-people-finder-default-rtdb.firebaseio.com",
+    storageBucket: "crossover-people-finder.firebasestorage.app",
+    messagingSenderId: "35563852058",
+    appId: "1:35563852058:web:a4b89c5f0fedd06432dca3"
 };
 
 // Initialize Firebase
