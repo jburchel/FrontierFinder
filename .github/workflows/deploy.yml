@@ -41,7 +41,7 @@ jobs:
             const fs = require('fs');
             require('dotenv').config();
             
-            const content = fs.readFileSync('src/js/firebaseConfig.js', 'utf8');
+            const content = fs.readFileSync('src/js/config.js', 'utf8');
             const updatedContent = content
               .replace(/process\.env\.FIREBASE_API_KEY/g, '\"${{ secrets.FIREBASE_API_KEY }}\"')
               .replace(/process\.env\.FIREBASE_AUTH_DOMAIN/g, '\"${{ secrets.FIREBASE_AUTH_DOMAIN }}\"')
@@ -52,8 +52,7 @@ jobs:
               .replace(/process\.env\.FIREBASE_APP_ID/g, '\"${{ secrets.FIREBASE_APP_ID }}\"')
               .replace(/process\.env\.JOSHUA_PROJECT_API_KEY/g, '\"${{ secrets.JOSHUA_PROJECT_API_KEY }}\"');
             
-            fs.writeFileSync('src/js/firebaseConfig.js', updatedContent);
-          "
+            fs.writeFileSync('src/js/config.js', updatedContent);"
 
       - name: Prepare for deployment
         run: |
@@ -80,4 +79,3 @@ jobs:
         with:
           folder: public
           branch: gh-pages
-          clean: true
