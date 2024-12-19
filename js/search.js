@@ -8,6 +8,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         const upgSelect = document.getElementById('upg');
         const searchForm = document.getElementById('searchForm');
         
+        // Add default option to country dropdown
+        const defaultCountryOption = document.createElement('option');
+        defaultCountryOption.value = '';
+        defaultCountryOption.textContent = 'Select Country';
+        countrySelect.appendChild(defaultCountryOption);
+        
+        // Add default option to UPG dropdown
+        const defaultUPGOption = document.createElement('option');
+        defaultUPGOption.value = '';
+        defaultUPGOption.textContent = 'Select UPG';
+        upgSelect.appendChild(defaultUPGOption);
+        
         // Populate country dropdown
         const countries = dataService.getCountries();
         countries.forEach(country => {
@@ -20,54 +32,65 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Handle country selection
         countrySelect.addEventListener('change', () => {
             const selectedCountry = countrySelect.value;
-            const upgs = dataService.getUPGsByCountry(selectedCountry);
             
-            // Clear and populate UPG dropdown
+            // Reset UPG dropdown
             upgSelect.innerHTML = '';
-            upgs.forEach(upg => {
-                const option = document.createElement('option');
-                option.value = JSON.stringify({
-                    name: upg.name,
-                    latitude: upg.latitude,
-                    longitude: upg.longitude
+            upgSelect.appendChild(defaultUPGOption.cloneNode(true));
+            
+            if (selectedCountry) {
+                const upgs = dataService.getUPGsByCountry(selectedCountry);
+                
+                // Populate UPG dropdown
+                upgs.forEach(upg => {
+                    const option = document.createElement('option');
+                    option.value = JSON.stringify({
+                        name: upg.name,
+                        latitude: upg.latitude,
+                        longitude: upg.longitude
+                    });
+                    option.textContent = upg.name;
+                    
+                    if (upg.pronunciation) {
+                        option.textContent += ` (${upg.pronunciation})`;
+                    }
+                    
+                    upgSelect.appendChild(option);
                 });
-                
-                // Create container for name and pronunciation
-                const container = document.createElement('div');
-                container.textContent = upg.name;
-                container.appendChild(
-                    pronunciationService.createPronunciationElement(
-                        upg.name,
-                        upg.pronunciation
-                    )
-                );
-                
-                option.appendChild(container);
-                upgSelect.appendChild(option);
-            });
+            }
         });
         
         // Handle form submission
-        searchForm.addEventListener('submit', (event) => {
+        searchForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             
-            const selectedUPG = JSON.parse(upgSelect.value);
+            const selectedCountry = countrySelect.value;
+            const selectedUPGData = upgSelect.value ? JSON.parse(upgSelect.value) : null;
             const radius = document.getElementById('radius').value;
             const unit = document.querySelector('input[name="unit"]:checked').value;
             
-            // Store search parameters in sessionStorage
-            sessionStorage.setItem('searchParams', JSON.stringify({
-                upg: selectedUPG,
-                radius,
-                unit
-            }));
+            if (!selectedCountry || !selectedUPGData || !radius) {
+                alert('Please fill in all required fields');
+                return;
+            }
             
-            // Navigate to results page
-            window.location.href = 'results.html';
+            try {
+                // Store search parameters in session storage
+                sessionStorage.setItem('searchParams', JSON.stringify({
+                    country: selectedCountry,
+                    upg: selectedUPGData,
+                    radius: radius,
+                    unit: unit
+                }));
+                
+                // Redirect to results page
+                window.location.href = 'results.html';
+            } catch (error) {
+                console.error('Error during form submission:', error);
+                alert('An error occurred while processing your request. Please try again.');
+            }
         });
     } catch (error) {
         console.error('Error initializing search page:', error);
-        // Show user-friendly error message
-        alert('An error occurred while loading the page. Please try again later.');
+        alert('An error occurred while loading the page. Please refresh and try again.');
     }
 });
