@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search Results - Frontier Finder</title>
     <link rel="stylesheet" href="/FrontierFinder/css/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="/FrontierFinder/images/favicon.png">
 </head>
@@ -23,63 +24,45 @@
         </header>
 
         <main>
-            <div class="search-container">
-                <div class="controls-container">
-                    <div class="filter-group">
-                        <div class="form-group">
-                            <label for="sortCriteria">Sort by:</label>
-                            <select id="sortCriteria" class="styled-select">
-                                <option value="distance">Distance</option>
-                                <option value="population">Population</option>
-                                <option value="language">Language</option>
-                                <option value="religion">Religion</option>
-                                <option value="type">Type (FPG/UUPG)</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="languageFilter">Language:</label>
-                            <select id="languageFilter" class="styled-select">
-                                <option value="">All Languages</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="religionFilter">Religion:</label>
-                            <select id="religionFilter" class="styled-select">
-                                <option value="">All Religions</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="typeFilter">Type:</label>
-                            <select id="typeFilter" class="styled-select">
-                                <option value="">All Types</option>
-                                <option value="FPG">FPG</option>
-                                <option value="UUPG">UUPG</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="evangelicalPercent">Max Evangelical %:</label>
-                            <input type="number" id="evangelicalPercent" class="styled-input" min="0" max="100" step="0.1">
-                        </div>
-                    </div>
+            <div class="sort-controls">
+                <span class="sort-label">Sort by:</span>
+                <div class="sort-buttons">
+                    <button class="sort-button" data-sort="distance" data-direction="desc">
+                        Distance
+                        <span class="sort-icon material-icons">arrow_downward</span>
+                    </button>
+                    <button class="sort-button" data-sort="type">
+                        Type
+                        <span class="sort-icon material-icons">unfold_more</span>
+                    </button>
+                    <button class="sort-button" data-sort="population">
+                        Population
+                        <span class="sort-icon material-icons">unfold_more</span>
+                    </button>
+                    <button class="sort-button" data-sort="religion">
+                        Religion
+                        <span class="sort-icon material-icons">unfold_more</span>
+                    </button>
+                    <button class="sort-button" data-sort="language">
+                        Language
+                        <span class="sort-icon material-icons">unfold_more</span>
+                    </button>
                 </div>
+            </div>
 
-                <div class="results-container">
-                    <div class="results-column">
-                        <h2>Frontier People Groups (FPGs)</h2>
-                        <div id="fpgResults"></div>
-                    </div>
-                    <div class="results-column">
-                        <h2>Unreached Unengaged People Groups (UUPGs)</h2>
-                        <div id="uupgResults"></div>
-                    </div>
+            <div class="results-container">
+                <div class="results-column">
+                    <h2>Frontier People Groups (FPGs)</h2>
+                    <div id="fpgResults"></div>
                 </div>
-                <div class="actions">
-                    <button id="addToTop100" class="primary-button">Add Selected to Top 100</button>
+                <div class="results-column">
+                    <h2>Unreached Unengaged People Groups (UUPGs)</h2>
+                    <div id="uupgResults"></div>
                 </div>
+            </div>
+            
+            <div class="actions">
+                <button id="addToTop100" class="primary-button">Add Selected to Top 100</button>
             </div>
         </main>
 

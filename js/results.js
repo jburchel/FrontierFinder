@@ -1,6 +1,11 @@
 import { dataService } from './dataService.js';
 import { playPronunciation } from './pronunciation.js';
 
+let currentResults = {
+    fpgs: [],
+    uupgs: []
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         await dataService.init();
@@ -13,8 +18,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // Load and display results
-        const results = await performSearch(searchParams);
-        displayResults(results);
+        currentResults = await performSearch(searchParams);
+        displayResults(currentResults);
+
+        // Initialize sorting
+        initializeSorting();
 
         // Handle adding to Top 100
         document.getElementById('addToTop100').addEventListener('click', async () => {
@@ -38,47 +46,73 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
+function initializeSorting() {
+    const sortButtons = document.querySelectorAll('.sort-button');
+    
+    sortButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const sortType = button.dataset.sort;
+            const currentDirection = button.dataset.direction || 'none';
+            const newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+
+            // Update button states
+            sortButtons.forEach(btn => {
+                btn.dataset.direction = btn === button ? newDirection : 'none';
+                btn.querySelector('.sort-icon').textContent = 
+                    btn === button 
+                        ? (newDirection === 'asc' ? 'arrow_upward' : 'arrow_downward')
+                        : 'unfold_more';
+            });
+
+            // Sort and display results
+            sortResults(sortType, newDirection);
+        });
+    });
+
+    // Initial sort by distance
+    sortResults('distance', 'desc');
+}
+
+function sortResults(sortType, direction) {
+    const sortFn = (a, b) => {
+        const multiplier = direction === 'asc' ? 1 : -1;
+        
+        switch (sortType) {
+            case 'distance':
+                return multiplier * (a.distance - b.distance);
+            case 'population':
+                return multiplier * (parseInt(b.population) - parseInt(a.population));
+            case 'type':
+                return multiplier * a.type.localeCompare(b.type);
+            case 'religion':
+                return multiplier * a.religion.localeCompare(b.religion);
+            case 'language':
+                return multiplier * a.language.localeCompare(b.language);
+            default:
+                return 0;
+        }
+    };
+
+    currentResults.fpgs.sort(sortFn);
+    currentResults.uupgs.sort(sortFn);
+    displayResults(currentResults);
+}
+
 async function performSearch(params) {
     try {
         const { upg, radius, unit, searchType } = params;
-        const results = {
-            fpgs: [],
-            uupgs: []
+        const results = await dataService.findGroupsWithinRadius(
+            upg.latitude,
+            upg.longitude,
+            radius,
+            unit,
+            searchType
+        );
+
+        return {
+            fpgs: results.filter(group => group.type === 'FPG'),
+            uupgs: results.filter(group => group.type === 'UUPG')
         };
-
-        // TODO: Implement actual search logic here
-        // This is just placeholder data
-        if (searchType === 'fpg' || searchType === 'both') {
-            results.fpgs = [
-                {
-                    name: 'Sample FPG 1',
-                    pronunciation: 'sam-pul',
-                    country: 'Country 1',
-                    population: 100000,
-                    religion: 'Religion 1',
-                    language: 'Language 1',
-                    evangelical: 0.1
-                }
-                // Add more sample FPGs
-            ];
-        }
-
-        if (searchType === 'uupg' || searchType === 'both') {
-            results.uupgs = [
-                {
-                    name: 'Sample UUPG 1',
-                    pronunciation: 'sam-pul',
-                    country: 'Country 2',
-                    population: 200000,
-                    religion: 'Religion 2',
-                    language: 'Language 2',
-                    evangelical: 0.2
-                }
-                // Add more sample UUPGs
-            ];
-        }
-
-        return results;
     } catch (error) {
         console.error('Error performing search:', error);
         throw error;
