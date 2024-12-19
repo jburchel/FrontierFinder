@@ -34,27 +34,26 @@ jobs:
         run: |
           npm init -y
           npm install dotenv
-          npm install -g firebase-tools
 
       - name: Process Environment Variables
         run: |
-          # Create a script to replace environment variables
-          echo "const fs = require('fs');
-          const path = require('path');
-          require('dotenv').config();
-
-          function replaceEnvVars(filePath) {
-            let content = fs.readFileSync(filePath, 'utf8');
-            Object.keys(process.env).forEach(key => {
-              const regex = new RegExp(`process\\.env\\.${key}`, 'g');
-              content = content.replace(regex, `'${process.env[key]}'`);
-            });
-            fs.writeFileSync(filePath, content);
-          }
-
-          replaceEnvVars('src/js/firebaseConfig.js');" > process-env.js
-          
-          node process-env.js
+          node -e "
+            const fs = require('fs');
+            require('dotenv').config();
+            
+            const content = fs.readFileSync('src/js/firebaseConfig.js', 'utf8');
+            const updatedContent = content
+              .replace(/process\.env\.FIREBASE_API_KEY/g, '\"${{ secrets.FIREBASE_API_KEY }}\"')
+              .replace(/process\.env\.FIREBASE_AUTH_DOMAIN/g, '\"${{ secrets.FIREBASE_AUTH_DOMAIN }}\"')
+              .replace(/process\.env\.FIREBASE_PROJECT_ID/g, '\"${{ secrets.FIREBASE_PROJECT_ID }}\"')
+              .replace(/process\.env\.FIREBASE_DATABASE_URL/g, '\"${{ secrets.FIREBASE_DATABASE_URL }}\"')
+              .replace(/process\.env\.FIREBASE_STORAGE_BUCKET/g, '\"${{ secrets.FIREBASE_STORAGE_BUCKET }}\"')
+              .replace(/process\.env\.FIREBASE_MESSAGING_SENDER_ID/g, '\"${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}\"')
+              .replace(/process\.env\.FIREBASE_APP_ID/g, '\"${{ secrets.FIREBASE_APP_ID }}\"')
+              .replace(/process\.env\.JOSHUA_PROJECT_API_KEY/g, '\"${{ secrets.JOSHUA_PROJECT_API_KEY }}\"');
+            
+            fs.writeFileSync('src/js/firebaseConfig.js', updatedContent);
+          "
 
       - name: Prepare for deployment
         run: |
