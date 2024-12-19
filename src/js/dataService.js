@@ -1,20 +1,14 @@
 import { getDatabase, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-import { firebaseConfig } from './config.js';
+import { app } from './config.js';
 
 class DataService {
     constructor() {
-        this.db = null;
+        this.db = getDatabase(app);
         this.existingUPGs = null;
     }
 
     async init() {
         try {
-            if (!this.db) {
-                // Initialize Firebase
-                const app = firebase.initializeApp(firebaseConfig);
-                this.db = getDatabase(app);
-            }
-            
             // Load UPGs data if not already loaded
             if (!this.existingUPGs) {
                 await this.loadUPGsData();
