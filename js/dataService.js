@@ -21,9 +21,15 @@ class DataService {
 
     async loadExistingUPGs() {
         try {
+            console.log('Loading existing UPGs...');
             const response = await fetch('data/existing_upgs_updated.csv');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             const csvText = await response.text();
+            console.log('CSV text loaded:', csvText.substring(0, 200)); // Log first 200 chars
             this.existingUPGs = this.parseCSV(csvText);
+            console.log('Parsed UPGs:', this.existingUPGs.slice(0, 2)); // Log first 2 entries
         } catch (error) {
             console.error('Error loading existing UPGs:', error);
             throw error;
@@ -33,6 +39,9 @@ class DataService {
     async loadUUPGData() {
         try {
             const response = await fetch('data/updated_uupg.csv');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             const csvText = await response.text();
             this.uupgData = this.parseCSV(csvText);
         } catch (error) {
@@ -44,8 +53,13 @@ class DataService {
     parseCSV(csvText) {
         try {
             const lines = csvText.split('\n');
-            const headers = lines[0].split(',').map(header => header.trim());
-            
+            if (lines.length === 0) {
+                throw new Error('CSV file is empty');
+            }
+
+            const headers = lines[0].toLowerCase().split(',').map(header => header.trim());
+            console.log('CSV Headers:', headers); // Log headers
+
             return lines.slice(1)
                 .filter(line => line.trim() !== '')
                 .map(line => {
@@ -64,7 +78,12 @@ class DataService {
 
     getCountries() {
         try {
-            const countries = [...new Set(this.existingUPGs.map(upg => upg.Country))];
+            console.log('Getting countries from UPGs:', this.existingUPGs); // Log the UPGs array
+            const countries = [...new Set(this.existingUPGs
+                .filter(upg => upg.country && upg.country.trim() !== '')
+                .map(upg => upg.country)
+            )];
+            console.log('Unique countries found:', countries); // Log unique countries
             return countries.sort();
         } catch (error) {
             console.error('Error getting countries:', error);
@@ -75,12 +94,12 @@ class DataService {
     getUPGsByCountry(country) {
         try {
             return this.existingUPGs
-                .filter(upg => upg.Country === country)
+                .filter(upg => upg.country.toLowerCase() === country.toLowerCase())
                 .map(upg => ({
-                    name: upg.PeopNameInCountry,
-                    latitude: parseFloat(upg.Latitude),
-                    longitude: parseFloat(upg.Longitude),
-                    pronunciation: upg.Pronunciation || ''
+                    name: upg.name,
+                    latitude: parseFloat(upg.latitude),
+                    longitude: parseFloat(upg.longitude),
+                    pronunciation: upg.pronunciation || ''
                 }))
                 .sort((a, b) => a.name.localeCompare(b.name));
         } catch (error) {

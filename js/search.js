@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
     try {
+        console.log('Initializing search page...');
+        
         // Initialize services
         await dataService.init();
         
@@ -21,7 +23,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         upgSelect.appendChild(defaultUPGOption);
         
         // Populate country dropdown
+        console.log('Populating country dropdown...');
         const countries = dataService.getCountries();
+        console.log('Countries received:', countries);
+        
+        if (countries.length === 0) {
+            console.error('No countries found in the data');
+            throw new Error('No countries available');
+        }
+        
         countries.forEach(country => {
             const option = document.createElement('option');
             option.value = country;
@@ -32,6 +42,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Handle country selection
         countrySelect.addEventListener('change', () => {
             const selectedCountry = countrySelect.value;
+            console.log('Country selected:', selectedCountry);
             
             // Reset UPG dropdown
             upgSelect.innerHTML = '';
@@ -39,6 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             if (selectedCountry) {
                 const upgs = dataService.getUPGsByCountry(selectedCountry);
+                console.log('UPGs for country:', upgs);
                 
                 // Populate UPG dropdown
                 upgs.forEach(upg => {
@@ -75,6 +87,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             
             try {
+                console.log('Submitting search with params:', {
+                    country: selectedCountry,
+                    upg: selectedUPGData,
+                    radius,
+                    unit,
+                    searchType
+                });
+                
                 // Store search parameters in session storage
                 sessionStorage.setItem('searchParams', JSON.stringify({
                     country: selectedCountry,
