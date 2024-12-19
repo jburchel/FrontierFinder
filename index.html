@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontier Finder - Crossover Global</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="app-header">
+        <div class="logo-container">
+            <img src="../images/crossover-logo.png" alt="Crossover Global Logo" class="logo">
+        </div>
+        <h1 class="mission-statement">"Making Christ's last command our first priority"</h1>
+    </header>
+
+    <div class="container">
+        <div class="search-container">
+            <h2 class="section-title">Find Unreached People Groups</h2>
+            <p class="stats-highlight">42% of the world's population is unreached with the gospel</p>
+            
+            <form id="searchForm" class="search-form">
+                <div class="form-group">
+                    <label for="country">Select Country:</label>
+                    <select id="country" required class="styled-select"></select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="upg">Select UPG:</label>
+                    <select id="upg" required class="styled-select"></select>
+                </div>
+                
+                <div class="form-group radius-group">
+                    <label for="radius">Search Radius:</label>
+                    <div class="radius-input-container">
+                        <input type="number" id="radius" required min="1" class="styled-input">
+                        <div class="radio-group">
+                            <input type="radio" id="miles" name="unit" value="miles" checked>
+                            <label for="miles">Miles</label>
+                            <input type="radio" id="kilometers" name="unit" value="kilometers">
+                            <label for="kilometers">Kilometers</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="primary-button">Search</button>
+            </form>
+            
+            <div class="links">
+                <a href="top_100.html" class="secondary-button">View Top 100 List</a>
+            </div>
+        </div>
+
+        <footer class="app-footer">
+            <p class="footer-text">"Crossover Global passionately seeks to glorify God by providing Gospel access through the planting of multiplying churches among the unreached peoples of the world."</p>
+        </footer>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-database.js"></script>
+    
+    <!-- Application Scripts -->
+    <script src="../js/firebaseConfig.js"></script>
+    <script src="../js/dataService.js"></script>
+    <script src="../js/pronunciation.js"></script>
+    <script src="../js/search.js"></script>
+</body>
+</html>
