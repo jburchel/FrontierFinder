@@ -43,21 +43,25 @@
 
                     <div class="form-group">
                         <label for="radius">Search Radius:</label>
-                        <input type="number" id="radius" name="radius" min="1" required placeholder="Enter radius">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="unit">Distance Unit:</label>
-                        <select id="unit" name="unit" required>
-                            <option value="miles">Miles</option>
-                            <option value="kilometers">Kilometers</option>
-                        </select>
+                        <div class="radius-unit-group">
+                            <input type="number" id="radius" name="radius" min="1" required>
+                            <div class="radio-group">
+                                <label>
+                                    <input type="radio" name="unit" value="miles" checked>
+                                    Miles
+                                </label>
+                                <label>
+                                    <input type="radio" name="unit" value="kilometers">
+                                    Kilometers
+                                </label>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group">
                         <label for="searchType">Search Type:</label>
-                        <select id="searchType" name="searchType" required>
-                            <option value="both">Both UUPG and FPG</option>
+                        <select id="searchType" name="searchType">
+                            <option value="both">Both FPG and UUPG</option>
                             <option value="fpg">FPG Only</option>
                             <option value="uupg">UUPG Only</option>
                         </select>
