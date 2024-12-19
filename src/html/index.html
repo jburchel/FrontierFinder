@@ -14,51 +14,66 @@
         <div class="logo-container">
             <img src="images/crossover-global-logo.png" alt="Crossover Global Logo" class="logo">
         </div>
-        <h1 Frontier Finder</h1>
+        <h1>Frontier Finder</h1>
         <h2 class="mission-statement">"We provide gospel access to unreached people groups."</h2>
     </header>
 
-    <div class="container">
-        <div class="search-container">
-            <h2 class="section-title">Find Unreached People Groups</h2>
-            <p class="stats-highlight">42% of the world's population is unreached with the gospel</p>
-            
+    <main class="container">
+        <section class="search-section">
+            <h2>Find Frontier and Unengaged People Groups</h2>
+            <p class="description">
+                Search for Frontier People Groups (FPGs) and Unreached Unengaged People Groups (UUPGs) within a specified radius of a selected UPG where Crossover Global has a presence.
+            </p>
+
             <form id="searchForm" class="search-form">
-                <div class="form-group">
-                    <label for="country">Select Country:</label>
-                    <select id="country" required class="styled-select"></select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="upg">Select UPG:</label>
-                    <select id="upg" required class="styled-select"></select>
-                </div>
-                
-                <div class="form-group radius-group">
-                    <label for="radius">Search Radius:</label>
-                    <div class="radius-input-container">
-                        <input type="number" id="radius" required min="1" class="styled-input">
-                        <div class="radio-group">
-                            <input type="radio" id="miles" name="unit" value="miles" checked>
-                            <label for="miles">Miles</label>
-                            <input type="radio" id="kilometers" name="unit" value="kilometers">
-                            <label for="kilometers">Kilometers</label>
-                        </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="country">Select Country:</label>
+                        <select id="country" name="country" required>
+                            <option value="">Select a country</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="upg">Select UPG:</label>
+                        <select id="upg" name="upg" required>
+                            <option value="">Select a UPG</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="radius">Search Radius:</label>
+                        <input type="number" id="radius" name="radius" min="1" required placeholder="Enter radius">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="unit">Distance Unit:</label>
+                        <select id="unit" name="unit" required>
+                            <option value="miles">Miles</option>
+                            <option value="kilometers">Kilometers</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="searchType">Search Type:</label>
+                        <select id="searchType" name="searchType" required>
+                            <option value="both">Both UUPG and FPG</option>
+                            <option value="fpg">FPG Only</option>
+                            <option value="uupg">UUPG Only</option>
+                        </select>
                     </div>
                 </div>
-                
-                <button type="submit" class="primary-button">Search</button>
-            </form>
-            
-            <div class="links">
-                <a href="top_100.html" class="secondary-button">View Top 100 List</a>
-            </div>
-        </div>
 
-        <footer class="app-footer">
-            <p class="footer-text">"Crossover Global passionately seeks to glorify God by providing Gospel access through the planting of multiplying churches among the unreached peoples of the world."</p>
-        </footer>
-    </div>
+                <button type="submit" class="search-button">Search</button>
+            </form>
+        </section>
+
+        <section class="top-100-section">
+            <h2>Top 100 Priority List</h2>
+            <p class="description">View and manage your prioritized list of unreached people groups.</p>
+            <a href="top_100.html" class="view-list-button">View List</a>
+        </section>
+    </main>
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>

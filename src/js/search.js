@@ -66,7 +66,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const selectedCountry = countrySelect.value;
             const selectedUPGData = upgSelect.value ? JSON.parse(upgSelect.value) : null;
             const radius = document.getElementById('radius').value;
-            const unit = document.querySelector('input[name="unit"]:checked').value;
+            const unit = document.getElementById('unit').value;
+            const searchType = document.getElementById('searchType').value;
             
             if (!selectedCountry || !selectedUPGData || !radius) {
                 alert('Please fill in all required fields');
@@ -79,7 +80,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     country: selectedCountry,
                     upg: selectedUPGData,
                     radius: radius,
-                    unit: unit
+                    unit: unit,
+                    searchType: searchType
                 }));
                 
                 // Redirect to results page
