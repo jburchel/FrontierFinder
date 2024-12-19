@@ -9,86 +9,96 @@
     <link rel="icon" type="image/png" href="/FrontierFinder/images/favicon.png">
 </head>
 <body>
-    <header class="app-header">
-        <div class="logo-container">
-            <img src="/FrontierFinder/images/crossover-global-logo.png" alt="Crossover Global Logo" class="logo">
-        </div>
-        <h1 class="mission-statement">"Spiritual needs are everywhere, but access to the gospel is not."</h1>
-    </header>
-
     <div class="container">
-        <nav class="nav-links">
-            <a href="/FrontierFinder/index.html" class="nav-link">← Back to Search</a>
-            <a href="/FrontierFinder/top_100.html" class="nav-link">View Top 100 List →</a>
-        </nav>
+        <header>
+            <div class="logo-container">
+                <img src="/FrontierFinder/images/crossover-global-logo.png" alt="Crossover Global Logo" class="logo">
+            </div>
+            <h1 class="mission-statement">"Spiritual needs are everywhere, but access to the gospel is not."</h1>
+            <h1>Search Results</h1>
+            <nav>
+                <a href="/FrontierFinder/index.html" class="nav-link">Back to Search</a>
+                <a href="/FrontierFinder/top_100.html" class="nav-link">View Top 100</a>
+            </nav>
+        </header>
 
-        <div class="search-container">
-            <h2 class="section-title">Search Results</h2>
+        <main>
+            <div class="search-container">
+                <div class="controls-container">
+                    <div class="filter-group">
+                        <div class="form-group">
+                            <label for="sortCriteria">Sort by:</label>
+                            <select id="sortCriteria" class="styled-select">
+                                <option value="distance">Distance</option>
+                                <option value="population">Population</option>
+                                <option value="language">Language</option>
+                                <option value="religion">Religion</option>
+                                <option value="type">Type (FPG/UUPG)</option>
+                            </select>
+                        </div>
 
-            <div class="controls-container">
-                <div class="filter-group">
-                    <div class="form-group">
-                        <label for="sortCriteria">Sort by:</label>
-                        <select id="sortCriteria" class="styled-select">
-                            <option value="distance">Distance</option>
-                            <option value="population">Population</option>
-                            <option value="language">Language</option>
-                            <option value="religion">Religion</option>
-                            <option value="type">Type (FPG/UUPG)</option>
-                        </select>
+                        <div class="form-group">
+                            <label for="languageFilter">Language:</label>
+                            <select id="languageFilter" class="styled-select">
+                                <option value="">All Languages</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="religionFilter">Religion:</label>
+                            <select id="religionFilter" class="styled-select">
+                                <option value="">All Religions</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="typeFilter">Type:</label>
+                            <select id="typeFilter" class="styled-select">
+                                <option value="">All Types</option>
+                                <option value="FPG">FPG</option>
+                                <option value="UUPG">UUPG</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="evangelicalPercent">Max Evangelical %:</label>
+                            <input type="number" id="evangelicalPercent" class="styled-input" min="0" max="100" step="0.1">
+                        </div>
                     </div>
+                </div>
 
-                    <div class="form-group">
-                        <label for="languageFilter">Language:</label>
-                        <select id="languageFilter" class="styled-select">
-                            <option value="">All Languages</option>
-                        </select>
+                <div class="results-container">
+                    <div class="results-column">
+                        <h2>Frontier People Groups (FPGs)</h2>
+                        <div id="fpgResults"></div>
                     </div>
-
-                    <div class="form-group">
-                        <label for="religionFilter">Religion:</label>
-                        <select id="religionFilter" class="styled-select">
-                            <option value="">All Religions</option>
-                        </select>
+                    <div class="results-column">
+                        <h2>Unreached Unengaged People Groups (UUPGs)</h2>
+                        <div id="uupgResults"></div>
                     </div>
-
-                    <div class="form-group">
-                        <label for="typeFilter">Type:</label>
-                        <select id="typeFilter" class="styled-select">
-                            <option value="">All Types</option>
-                            <option value="FPG">FPG</option>
-                            <option value="UUPG">UUPG</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="evangelicalPercent">Max Evangelical %:</label>
-                        <input type="number" id="evangelicalPercent" class="styled-input" min="0" max="100" step="0.1">
-                    </div>
+                </div>
+                <div class="actions">
+                    <button id="addToTop100" class="primary-button">Add Selected to Top 100</button>
                 </div>
             </div>
-
-            <form id="selectionForm">
-                <div id="results-container" class="results-container">
-                    <!-- Results will be dynamically inserted here -->
-                </div>
-                <button type="submit" id="addToTop100" class="primary-button">Add Selected to Top 100</button>
-            </form>
-        </div>
+        </main>
 
         <footer class="app-footer">
             <p class="footer-text">"Making Christ's last command our first priority."</p>
         </footer>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-database.js"></script>
+    <!-- Firebase Scripts -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        window.firebase = { initializeApp, getDatabase };
+    </script>
     
     <!-- Application Scripts -->
-    <script src="/FrontierFinder/js/firebaseConfig.js"></script>
-    <script src="/FrontierFinder/js/dataService.js"></script>
-    <script src="/FrontierFinder/js/pronunciation.js"></script>
-    <script src="/FrontierFinder/js/results.js"></script>
+    <script type="module" src="/FrontierFinder/js/firebaseConfig.js"></script>
+    <script type="module" src="/FrontierFinder/js/dataService.js"></script>
+    <script type="module" src="/FrontierFinder/js/pronunciation.js"></script>
+    <script type="module" src="/FrontierFinder/js/results.js"></script>
 </body>
 </html>

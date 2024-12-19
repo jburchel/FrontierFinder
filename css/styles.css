@@ -1,11 +1,13 @@
 /* Global Styles */
 :root {
-    --primary-color: #183963; /* Crossover Blue - PANTONE: 534 */
-    --secondary-color: #39A949; /* Crossover Green - PANTONE: 7739 */
-    --text-color: #7F7F7F; /* Crossover Gray - PANTONE: 840 C */
-    --background-color: #FFFFFF; /* Crossover White - PANTONE: P 75-1 U */
-    --border-color: #dcdde1;
-    --font-family: 'Open Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --primary-color: #2C3E50;
+    --secondary-color: #3498DB;
+    --accent-color: #E74C3C;
+    --background-color: #ECF0F1;
+    --text-color: #2C3E50;
+    --border-radius: 8px;
+    --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --font-family: 'Arial', sans-serif;
 }
 
 /* Reset and Base Styles */
@@ -17,32 +19,22 @@
 
 body {
     font-family: var(--font-family);
-    color: var(--text-color);
-    background-color: var(--background-color);
     line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-color);
+    color: var(--text-color);
 }
 
 /* Header Styles */
-.app-header {
-    background-color: var(--background-color);
-    padding: 2rem;
+header {
     text-align: center;
-    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 3rem;
 }
 
-.logo-container {
-    margin-bottom: 1rem;
-}
-
-.logo {
-    max-width: 200px;
-    height: auto;
-}
-
-.mission-statement {
+h1 {
     color: var(--primary-color);
-    font-style: italic;
-    margin-top: 1rem;
+    margin-bottom: 1rem;
 }
 
 /* Main Container */
@@ -55,8 +47,8 @@ body {
 /* Search Section */
 .search-section {
     background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
     padding: 2rem;
     margin-bottom: 2rem;
 }
@@ -66,37 +58,62 @@ body {
     margin-bottom: 2rem;
 }
 
+/* Search Form */
+.search-form {
+    background: white;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
 /* Form Grid Layout */
 .form-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    gap: 2rem;
 }
 
 .form-group {
-    display: flex;
-    flex-direction: column;
+    margin-bottom: 1.5rem;
 }
 
-label {
-    color: var(--primary-color);
+.form-group label {
+    display: block;
     margin-bottom: 0.5rem;
-    font-weight: 600;
-}
-
-select, input {
-    padding: 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 1rem;
     color: var(--text-color);
-    background-color: #fff;
+    font-weight: bold;
 }
 
-select:focus, input:focus {
-    outline: none;
-    border-color: var(--primary-color);
+.form-group select,
+.form-group input[type="number"] {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+}
+
+.radius-unit-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.radius-unit-group input[type="number"] {
+    flex: 1;
+}
+
+.radio-group {
+    display: flex;
+    gap: 1rem;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    font-weight: normal;
 }
 
 /* Buttons */
@@ -105,40 +122,97 @@ select:focus, input:focus {
     color: white;
     padding: 1rem 2rem;
     border: none;
-    border-radius: 4px;
-    font-size: 1rem;
-    font-weight: 600;
+    border-radius: var(--border-radius);
     cursor: pointer;
+    font-size: 1rem;
     width: 100%;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s;
 }
 
 .search-button:hover {
-    background-color: #2d8a3a;
+    background-color: #2980b9;
 }
 
-/* Top 100 Section */
-.top-100-section {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+/* Results page styles */
+.results-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.results-column {
+    background: white;
     padding: 2rem;
-    text-align: center;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
 }
 
-.view-list-button {
-    display: inline-block;
-    background-color: var(--primary-color);
+.results-column h2 {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+}
+
+.upg-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--box-shadow);
+}
+
+.upg-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.upg-card-checkbox {
+    margin: 0;
+}
+
+.upg-name {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--primary-color);
+}
+
+.pronunciation {
+    color: #666;
+    font-style: italic;
+}
+
+.play-button {
+    background: var(--secondary-color);
     color: white;
-    padding: 1rem 2rem;
-    border-radius: 4px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: background-color 0.3s ease;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
 }
 
-.view-list-button:hover {
-    background-color: #122d4f;
+.play-button:hover {
+    background-color: #2980b9;
+}
+
+.upg-card-content {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.upg-info-label {
+    font-weight: bold;
+    color: var(--text-color);
+    margin-bottom: 0.25rem;
+}
+
+.upg-info-value {
+    color: #666;
+    margin-bottom: 0.5rem;
 }
 
 /* Responsive Design */
