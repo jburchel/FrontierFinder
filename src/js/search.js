@@ -41,7 +41,6 @@ async function initializeSearchForm() {
                 const upgs = await dataService.getUPGsForCountry(selectedCountry);
                 console.log('UPGs loaded for', selectedCountry, ':', upgs);
                 
-                // Add new options
                 upgs.forEach(upg => {
                     const option = document.createElement('option');
                     option.value = upg.id;
@@ -62,16 +61,20 @@ async function initializeSearchForm() {
         searchForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            if (!upgSelect.value) {
+            const selectedUPGId = upgSelect.value;
+            console.log('Selected UPG ID:', selectedUPGId);
+            
+            if (!selectedUPGId) {
                 alert('Please select a UPG');
                 return;
             }
 
             try {
-                const selectedUPG = await dataService.getUPGById(upgSelect.value);
+                const selectedUPG = await dataService.getUPGById(selectedUPGId);
+                console.log('Selected UPG data:', selectedUPG);
+                
                 if (!selectedUPG) {
-                    alert('Selected UPG not found');
-                    return;
+                    throw new Error('Selected UPG not found');
                 }
 
                 const searchParams = {
@@ -81,6 +84,8 @@ async function initializeSearchForm() {
                     searchType: document.getElementById('searchType').value
                 };
 
+                console.log('Search parameters:', searchParams);
+                
                 // Store search parameters
                 sessionStorage.setItem('searchParams', JSON.stringify(searchParams));
                 
@@ -88,7 +93,7 @@ async function initializeSearchForm() {
                 window.location.href = 'results.html';
             } catch (error) {
                 console.error('Error during search:', error);
-                alert('Error processing search. Please try again.');
+                alert('Error processing search: ' + error.message);
             }
         });
     } catch (error) {

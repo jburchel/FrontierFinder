@@ -1,210 +1,162 @@
-import { database } from './config.js';
-import { ref, get, set, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { firebaseConfig } from './config.js';
 
 class DataService {
     constructor() {
-        this.existingUPGs = [];
-        this.uupgData = [];
-        this.database = database;
+        this.db = null;
+        this.existingUPGs = null;
     }
 
     async init() {
         try {
-            // Load CSV data
-            await this.loadExistingUPGs();
-            await this.loadUUPGData();
+            if (!this.db) {
+                // Initialize Firebase
+                const app = firebase.initializeApp(firebaseConfig);
+                this.db = getDatabase(app);
+            }
             
-            // Initialize Firebase data structure if needed
-            await this.initializeFirebaseData();
+            // Load UPGs data if not already loaded
+            if (!this.existingUPGs) {
+                await this.loadUPGsData();
+            }
         } catch (error) {
-            console.error('Error initializing data service:', error);
+            console.error('Error initializing DataService:', error);
             throw error;
         }
     }
 
-    async loadExistingUPGs() {
+    async loadUPGsData() {
         try {
-            console.log('Loading existing UPGs...');
-            const response = await fetch('data/existing_upgs_updated.csv');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            const response = await fetch('../data/existing_upgs_updated.csv');
             const csvText = await response.text();
-            console.log('CSV text loaded:', csvText.substring(0, 200));
+            
+            // Parse CSV
             this.existingUPGs = this.parseCSV(csvText);
-            console.log('Parsed UPGs:', this.existingUPGs.slice(0, 2));
+            console.log('UPGs data loaded:', this.existingUPGs);
         } catch (error) {
-            console.error('Error loading existing UPGs:', error);
-            throw error;
-        }
-    }
-
-    async loadUUPGData() {
-        try {
-            const response = await fetch('data/updated_uupg.csv');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const csvText = await response.text();
-            this.uupgData = this.parseCSV(csvText);
-        } catch (error) {
-            console.error('Error loading UUPG data:', error);
+            console.error('Error loading UPGs data:', error);
             throw error;
         }
     }
 
     parseCSV(csvText) {
-        try {
-            const lines = csvText.split('\n');
-            if (lines.length === 0) {
-                throw new Error('CSV file is empty');
-            }
-
-            const headers = lines[0].toLowerCase().split(',').map(header => header.trim());
-            console.log('CSV Headers:', headers);
-
-            return lines.slice(1)
-                .filter(line => line.trim() !== '')
-                .map(line => {
-                    const values = line.split(',');
-                    const entry = {};
-                    headers.forEach((header, index) => {
-                        entry[header] = values[index]?.trim() || '';
-                    });
-                    return entry;
+        const lines = csvText.split('\n');
+        const headers = lines[0].split(',').map(h => h.trim());
+        
+        return lines.slice(1)
+            .filter(line => line.trim())
+            .map(line => {
+                const values = line.split(',').map(v => v.trim());
+                const record = {};
+                headers.forEach((header, index) => {
+                    record[header] = values[index];
                 });
-        } catch (error) {
-            console.error('Error parsing CSV:', error);
-            throw error;
-        }
+                // Generate a unique ID for each UPG
+                record.id = record.name.toLowerCase().replace(/\s+/g, '-');
+                return record;
+            });
     }
 
     getCountries() {
-        try {
-            console.log('Getting countries from UPGs:', this.existingUPGs);
-            const countries = [...new Set(this.existingUPGs
-                .filter(upg => upg.country && upg.country.trim() !== '')
-                .map(upg => upg.country)
-            )];
-            console.log('Unique countries found:', countries);
-            return countries.sort();
-        } catch (error) {
-            console.error('Error getting countries:', error);
-            return [];
+        if (!this.existingUPGs) {
+            throw new Error('UPGs data not loaded');
         }
-    }
-
-    getUPGsByCountry(country) {
-        try {
-            return this.existingUPGs
-                .filter(upg => upg.country.toLowerCase() === country.toLowerCase())
-                .map(upg => ({
-                    name: upg.name,
-                    latitude: parseFloat(upg.latitude),
-                    longitude: parseFloat(upg.longitude),
-                    pronunciation: upg.pronunciation || ''
-                }))
-                .sort((a, b) => a.name.localeCompare(b.name));
-        } catch (error) {
-            console.error('Error getting UPGs by country:', error);
-            return [];
-        }
+        return [...new Set(this.existingUPGs.map(upg => upg.country))].sort();
     }
 
     async getUPGsForCountry(country) {
         if (!this.existingUPGs) {
             throw new Error('UPGs data not loaded');
         }
-        return this.existingUPGs
-            .filter(upg => upg.country === country)
-            .map(upg => ({
-                id: upg.id || String(Math.random()),
-                name: upg.name,
-                pronunciation: upg.pronunciation,
-                latitude: parseFloat(upg.latitude),
-                longitude: parseFloat(upg.longitude),
-                population: parseInt(upg.population),
-                language: upg.language,
-                religion: upg.religion,
-                evangelical: parseFloat(upg.evangelical)
-            }));
+        
+        const upgs = this.existingUPGs.filter(upg => upg.country === country);
+        console.log('UPGs for country', country, ':', upgs);
+        
+        return upgs.map(upg => ({
+            id: upg.id,
+            name: upg.name,
+            pronunciation: upg.pronunciation,
+            latitude: parseFloat(upg.latitude),
+            longitude: parseFloat(upg.longitude),
+            population: parseInt(upg.population),
+            language: upg.language,
+            religion: upg.religion,
+            evangelical: parseFloat(upg.evangelical)
+        }));
     }
 
     async getUPGById(id) {
         if (!this.existingUPGs) {
             throw new Error('UPGs data not loaded');
         }
-        return this.existingUPGs.find(upg => upg.id === id);
-    }
-
-    async initializeFirebaseData() {
-        try {
-            const topListRef = ref(this.database, 'top100List');
-            const snapshot = await get(topListRef);
-            
-            if (!snapshot.exists()) {
-                await set(topListRef, []);
-            }
-        } catch (error) {
-            console.error('Error initializing Firebase data:', error);
-            throw error;
-        }
-    }
-
-    // Calculate distance between two points using Haversine formula
-    calculateDistance(lat1, lon1, lat2, lon2, unit = 'km') {
-        const R = unit === 'km' ? 6371 : 3959; // Earth's radius in km or miles
-        const dLat = this.toRad(lat2 - lat1);
-        const dLon = this.toRad(lon2 - lon1);
-        const a = 
-            Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(this.toRad(lat1)) * Math.cos(this.toRad(lat2)) * 
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        return R * c;
-    }
-
-    toRad(value) {
-        return value * Math.PI / 180;
-    }
-
-    // Find FPGs and UUPGs within radius
-    findGroupsWithinRadius(centerLat, centerLon, radius, unit = 'km') {
-        return this.uupgData.filter(group => {
-            const distance = this.calculateDistance(
-                centerLat, centerLon,
-                parseFloat(group.latitude),
-                parseFloat(group.longitude),
-                unit
-            );
-            return distance <= radius;
-        }).map(group => ({
-            ...group,
-            type: parseFloat(group.evangelical) < 0.1 ? 'FPG' : 'UUPG'
-        }));
-    }
-
-    // Top 100 list management
-    async addToTop100(groups) {
-        const topListRef = ref(this.database, 'top100List');
-        const snapshot = await get(topListRef);
-        const currentList = snapshot.val() || [];
         
-        // Add new groups, avoiding duplicates
-        const updatedList = [...new Set([...currentList, ...groups])].slice(0, 100);
-        await set(topListRef, updatedList);
+        console.log('Looking for UPG with ID:', id);
+        console.log('Available UPGs:', this.existingUPGs);
+        
+        const upg = this.existingUPGs.find(upg => upg.id === id);
+        console.log('Found UPG:', upg);
+        
+        if (!upg) {
+            throw new Error(`UPG with ID ${id} not found`);
+        }
+        
+        return {
+            id: upg.id,
+            name: upg.name,
+            pronunciation: upg.pronunciation,
+            latitude: parseFloat(upg.latitude),
+            longitude: parseFloat(upg.longitude),
+            population: parseInt(upg.population),
+            language: upg.language,
+            religion: upg.religion,
+            evangelical: parseFloat(upg.evangelical)
+        };
+    }
+
+    async findGroupsWithinRadius(lat, lon, radius, unit, type) {
+        // TODO: Implement actual distance calculation and filtering
+        // For now, return sample data
+        return [
+            {
+                name: "Sample Group 1",
+                pronunciation: "sam-pul",
+                type: "FPG",
+                country: "Sample Country",
+                population: 100000,
+                religion: "Sample Religion",
+                language: "Sample Language",
+                evangelical: 0.5,
+                distance: 10
+            },
+            {
+                name: "Sample Group 2",
+                pronunciation: "sam-pul",
+                type: "UUPG",
+                country: "Sample Country",
+                population: 200000,
+                religion: "Sample Religion",
+                language: "Sample Language",
+                evangelical: 1.0,
+                distance: 20
+            }
+        ];
+    }
+
+    async addToTop100(groups) {
+        const top100Ref = ref(this.db, 'top100');
+        const existingData = (await get(top100Ref)).val() || {};
+        
+        groups.forEach(groupId => {
+            existingData[groupId] = true;
+        });
+        
+        await set(top100Ref, existingData);
     }
 
     async removeFromTop100(groupId) {
-        const topListRef = ref(this.database, 'top100List');
-        const snapshot = await get(topListRef);
-        const currentList = snapshot.val() || [];
-        
-        const updatedList = currentList.filter(id => id !== groupId);
-        await set(topListRef, updatedList);
+        const groupRef = ref(this.db, `top100/${groupId}`);
+        await remove(groupRef);
     }
 }
 
-// Create global instance
-const dataService = new DataService();
-export { dataService };
+export const dataService = new DataService();
