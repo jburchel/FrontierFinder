@@ -1,0 +1,30 @@
+{
+  "name": "frontier-finder",
+  "version": "1.0.0",
+  "description": "Web application to find Frontier People Groups (FPGs) and Unreached Unengaged People Groups (UUPGs)",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jburchel/FrontierFinder.git"
+  },
+  "keywords": [
+    "FPG",
+    "UUPG",
+    "Crossover",
+    "Global",
+    "Missions"
+  ],
+  "author": "Jim Burchel",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jburchel/FrontierFinder/issues"
+  },
+  "homepage": "https://jburchel.github.io/FrontierFinder",
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "firebase": "^9.x.x"
+  }
+}

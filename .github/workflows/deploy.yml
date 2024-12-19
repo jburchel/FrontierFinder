@@ -8,12 +8,14 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: '16'
 
@@ -30,24 +32,51 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          npm install -g firebase-tools
+          npm init -y
           npm install dotenv
+          npm install -g firebase-tools
 
-      - name: Build and Deploy
+      - name: Process Environment Variables
         run: |
-          # Move everything to the root for GitHub Pages
+          # Create a script to replace environment variables
+          echo "const fs = require('fs');
+          const path = require('path');
+          require('dotenv').config();
+
+          function replaceEnvVars(filePath) {
+            let content = fs.readFileSync(filePath, 'utf8');
+            Object.keys(process.env).forEach(key => {
+              const regex = new RegExp(\`process\\.env\\.${key}\`, 'g');
+              content = content.replace(regex, \`'\${process.env[key]}'\`);
+            });
+            fs.writeFileSync(filePath, content);
+          }
+
+          replaceEnvVars('src/js/firebaseConfig.js');" > process-env.js
+          
+          node process-env.js
+
+      - name: Prepare for deployment
+        run: |
+          # Create dist directory
           mkdir -p dist
+          
+          # Copy files to dist
           cp -r src/* dist/
           cp -r data dist/
           cp -r images dist/
           
-          # Move HTML files to root for GitHub Pages
+          # Move HTML files to root of dist
           mv dist/html/* dist/
-          rm -r dist/html
+          rm -rf dist/html
+          
+          # Create index.html in root if it doesn't exist
+          if [ ! -f "dist/index.html" ]; then
+            cp dist/html/index.html dist/
+          fi
 
-          # Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@4.1.4
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          branch: gh-pages
           folder: dist
-          clean: true
+          branch: gh-pages
