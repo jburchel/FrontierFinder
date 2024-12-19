@@ -46,8 +46,8 @@ jobs:
           function replaceEnvVars(filePath) {
             let content = fs.readFileSync(filePath, 'utf8');
             Object.keys(process.env).forEach(key => {
-              const regex = new RegExp(\`process\\.env\\.${key}\`, 'g');
-              content = content.replace(regex, \`'\${process.env[key]}'\`);
+              const regex = new RegExp(`process\\.env\\.${key}`, 'g');
+              content = content.replace(regex, `'${process.env[key]}'`);
             });
             fs.writeFileSync(filePath, content);
           }
@@ -58,25 +58,25 @@ jobs:
 
       - name: Prepare for deployment
         run: |
-          # Create dist directory
-          mkdir -p dist
+          # Create deployment directory
+          mkdir -p public
           
-          # Copy files to dist
-          cp -r src/* dist/
-          cp -r data dist/
-          cp -r images dist/
+          # Copy HTML files directly to root of public
+          cp src/html/*.html public/
           
-          # Move HTML files to root of dist
-          mv dist/html/* dist/
-          rm -rf dist/html
+          # Ensure index.html is in the root
+          cp src/html/index.html public/index.html
           
-          # Create index.html in root if it doesn't exist
-          if [ ! -f "dist/index.html" ]; then
-            cp dist/html/index.html dist/
-          fi
+          # Create directories and copy other assets
+          mkdir -p public/js public/css public/data public/images
+          cp -r src/js/* public/js/
+          cp -r src/css/* public/css/
+          cp -r data/* public/data/
+          cp -r images/* public/images/
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: dist
+          folder: public
           branch: gh-pages
+          clean: true
