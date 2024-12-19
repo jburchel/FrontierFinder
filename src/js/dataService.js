@@ -1,8 +1,11 @@
+import { database } from './firebaseConfig.js';
+import { ref, get, set } from "https://www.gstatic.com/firebasejs/9.x.x/firebase-database.js";
+
 class DataService {
     constructor() {
         this.existingUPGs = [];
         this.uupgData = [];
-        this.database = firebase.database();
+        this.database = database;
     }
 
     async init() {
@@ -27,9 +30,9 @@ class DataService {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const csvText = await response.text();
-            console.log('CSV text loaded:', csvText.substring(0, 200)); // Log first 200 chars
+            console.log('CSV text loaded:', csvText.substring(0, 200));
             this.existingUPGs = this.parseCSV(csvText);
-            console.log('Parsed UPGs:', this.existingUPGs.slice(0, 2)); // Log first 2 entries
+            console.log('Parsed UPGs:', this.existingUPGs.slice(0, 2));
         } catch (error) {
             console.error('Error loading existing UPGs:', error);
             throw error;
@@ -58,7 +61,7 @@ class DataService {
             }
 
             const headers = lines[0].toLowerCase().split(',').map(header => header.trim());
-            console.log('CSV Headers:', headers); // Log headers
+            console.log('CSV Headers:', headers);
 
             return lines.slice(1)
                 .filter(line => line.trim() !== '')
@@ -78,12 +81,12 @@ class DataService {
 
     getCountries() {
         try {
-            console.log('Getting countries from UPGs:', this.existingUPGs); // Log the UPGs array
+            console.log('Getting countries from UPGs:', this.existingUPGs);
             const countries = [...new Set(this.existingUPGs
                 .filter(upg => upg.country && upg.country.trim() !== '')
                 .map(upg => upg.country)
             )];
-            console.log('Unique countries found:', countries); // Log unique countries
+            console.log('Unique countries found:', countries);
             return countries.sort();
         } catch (error) {
             console.error('Error getting countries:', error);
@@ -110,11 +113,11 @@ class DataService {
 
     async initializeFirebaseData() {
         try {
-            const topListRef = this.database.ref('top100List');
-            const snapshot = await topListRef.once('value');
+            const topListRef = ref(this.database, 'top100List');
+            const snapshot = await get(topListRef);
             
             if (!snapshot.exists()) {
-                await topListRef.set([]);
+                await set(topListRef, []);
             }
         } catch (error) {
             console.error('Error initializing Firebase data:', error);
@@ -157,24 +160,25 @@ class DataService {
 
     // Top 100 list management
     async addToTop100(groups) {
-        const topListRef = this.database.ref('top100List');
-        const snapshot = await topListRef.once('value');
+        const topListRef = ref(this.database, 'top100List');
+        const snapshot = await get(topListRef);
         const currentList = snapshot.val() || [];
         
         // Add new groups, avoiding duplicates
         const updatedList = [...new Set([...currentList, ...groups])].slice(0, 100);
-        await topListRef.set(updatedList);
+        await set(topListRef, updatedList);
     }
 
     async removeFromTop100(groupId) {
-        const topListRef = this.database.ref('top100List');
-        const snapshot = await topListRef.once('value');
+        const topListRef = ref(this.database, 'top100List');
+        const snapshot = await get(topListRef);
         const currentList = snapshot.val() || [];
         
         const updatedList = currentList.filter(id => id !== groupId);
-        await topListRef.set(updatedList);
+        await set(topListRef, updatedList);
     }
 }
 
 // Create global instance
 const dataService = new DataService();
+export { dataService };
