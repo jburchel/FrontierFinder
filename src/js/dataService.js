@@ -1,5 +1,5 @@
 import { database } from './config.js';
-import { ref, get, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { ref, get, set, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 class DataService {
     constructor() {
@@ -109,6 +109,32 @@ class DataService {
             console.error('Error getting UPGs by country:', error);
             return [];
         }
+    }
+
+    async getUPGsForCountry(country) {
+        if (!this.existingUPGs) {
+            throw new Error('UPGs data not loaded');
+        }
+        return this.existingUPGs
+            .filter(upg => upg.country === country)
+            .map(upg => ({
+                id: upg.id || String(Math.random()),
+                name: upg.name,
+                pronunciation: upg.pronunciation,
+                latitude: parseFloat(upg.latitude),
+                longitude: parseFloat(upg.longitude),
+                population: parseInt(upg.population),
+                language: upg.language,
+                religion: upg.religion,
+                evangelical: parseFloat(upg.evangelical)
+            }));
+    }
+
+    async getUPGById(id) {
+        if (!this.existingUPGs) {
+            throw new Error('UPGs data not loaded');
+        }
+        return this.existingUPGs.find(upg => upg.id === id);
     }
 
     async initializeFirebaseData() {

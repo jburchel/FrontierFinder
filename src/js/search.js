@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await initializeSearchForm();
     } catch (error) {
         console.error('Error initializing search page:', error);
+        alert('Error loading the search page. Please try refreshing.');
     }
 });
 
@@ -14,7 +15,12 @@ async function initializeSearchForm() {
     const upgSelect = document.getElementById('upg');
     
     try {
+        // Add default options
+        countrySelect.innerHTML = '<option value="">Select Country</option>';
+        upgSelect.innerHTML = '<option value="">Select UPG</option>';
+
         const countries = await dataService.getCountries();
+        console.log('Countries loaded:', countries);
         
         // Populate country dropdown
         countries.forEach(country => {
@@ -27,18 +33,28 @@ async function initializeSearchForm() {
         // Handle country selection
         countrySelect.addEventListener('change', async () => {
             const selectedCountry = countrySelect.value;
-            const upgs = await dataService.getUPGsForCountry(selectedCountry);
+            upgSelect.innerHTML = '<option value="">Select UPG</option>';
             
-            // Clear existing options
-            upgSelect.innerHTML = '';
-            
-            // Add new options
-            upgs.forEach(upg => {
-                const option = document.createElement('option');
-                option.value = upg.id;
-                option.textContent = upg.name;
-                upgSelect.appendChild(option);
-            });
+            if (!selectedCountry) return;
+
+            try {
+                const upgs = await dataService.getUPGsForCountry(selectedCountry);
+                console.log('UPGs loaded for', selectedCountry, ':', upgs);
+                
+                // Add new options
+                upgs.forEach(upg => {
+                    const option = document.createElement('option');
+                    option.value = upg.id;
+                    option.textContent = upg.name;
+                    if (upg.pronunciation) {
+                        option.textContent += ` (${upg.pronunciation})`;
+                    }
+                    upgSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading UPGs:', error);
+                alert('Error loading UPGs for the selected country.');
+            }
         });
 
         // Handle form submission
@@ -46,26 +62,37 @@ async function initializeSearchForm() {
         searchForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const selectedUPG = await dataService.getUPGById(upgSelect.value);
-            if (!selectedUPG) {
+            if (!upgSelect.value) {
                 alert('Please select a UPG');
                 return;
             }
 
-            const searchParams = {
-                upg: selectedUPG,
-                radius: document.getElementById('radius').value,
-                unit: document.querySelector('input[name="unit"]:checked').value,
-                searchType: document.getElementById('searchType').value
-            };
+            try {
+                const selectedUPG = await dataService.getUPGById(upgSelect.value);
+                if (!selectedUPG) {
+                    alert('Selected UPG not found');
+                    return;
+                }
 
-            // Store search parameters
-            sessionStorage.setItem('searchParams', JSON.stringify(searchParams));
-            
-            // Navigate to results page
-            window.location.href = 'results.html';
+                const searchParams = {
+                    upg: selectedUPG,
+                    radius: document.getElementById('radius').value,
+                    unit: document.querySelector('input[name="unit"]:checked').value,
+                    searchType: document.getElementById('searchType').value
+                };
+
+                // Store search parameters
+                sessionStorage.setItem('searchParams', JSON.stringify(searchParams));
+                
+                // Navigate to results page
+                window.location.href = 'results.html';
+            } catch (error) {
+                console.error('Error during search:', error);
+                alert('Error processing search. Please try again.');
+            }
         });
     } catch (error) {
         console.error('Error setting up search form:', error);
+        alert('Error setting up the search form. Please refresh the page.');
     }
 }
