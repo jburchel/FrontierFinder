@@ -1,4 +1,8 @@
-// Firebase configuration
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js";
+import { getDatabase } from "https://www.gstatic.com/firebasejs/9.x.x/firebase-database.js";
+
+// Your web app's Firebase configuration
 const firebaseConfig = {
     apiKey: "AIzaSyBtzaibXTCspENsEVaN8XF5DkuizsjxVX4",
     authDomain: "crossover-people-finder.firebaseapp.com",
@@ -10,7 +14,7 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
 
-// Initialize Realtime Database
-const database = firebase.database();
+export { database };

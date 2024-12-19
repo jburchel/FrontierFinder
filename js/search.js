@@ -1,3 +1,5 @@
+import { dataService } from './dataService.js';
+
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         console.log('Initializing search page...');
