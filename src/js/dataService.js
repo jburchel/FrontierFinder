@@ -1,5 +1,5 @@
 import { database } from './config.js';
-import { ref, get, set } from "https://www.gstatic.com/firebasejs/9.x.x/firebase-database.js";
+import { ref, get, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 class DataService {
     constructor() {
