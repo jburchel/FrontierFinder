@@ -60,7 +60,7 @@ jobs:
           # Create deployment directory
           mkdir -p public
           
-          # Copy HTML files to root
+          # Copy HTML files to root of public
           cp src/html/*.html public/
           
           # Create asset directories
@@ -71,9 +71,6 @@ jobs:
           cp -r src/js/* public/js/
           cp -r data/* public/data/
           cp -r images/* public/images/
-          
-          # Move index.html to root
-          cp public/index.html public/index.html
           
           # Create .nojekyll file to bypass Jekyll processing
           touch public/.nojekyll
