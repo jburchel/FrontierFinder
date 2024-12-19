@@ -20,48 +20,87 @@ class DataService {
     }
 
     async loadExistingUPGs() {
-        const response = await fetch('/data/existing_upgs_updated.csv');
-        const csvText = await response.text();
-        this.existingUPGs = this.parseCSV(csvText);
-    }
-
-    async loadUUPGData() {
-        const response = await fetch('/data/updated_uupg.csv');
-        const csvText = await response.text();
-        this.uupgData = this.parseCSV(csvText);
-    }
-
-    parseCSV(csvText) {
-        // Simple CSV parser - can be enhanced for more complex CSV structures
-        const lines = csvText.split('\n');
-        const headers = lines[0].split(',');
-        
-        return lines.slice(1).map(line => {
-            const values = line.split(',');
-            const entry = {};
-            headers.forEach((header, index) => {
-                entry[header.trim()] = values[index]?.trim() || '';
-            });
-            return entry;
-        });
-    }
-
-    async initializeFirebaseData() {
-        const topListRef = this.database.ref('top100List');
-        const snapshot = await topListRef.once('value');
-        if (!snapshot.exists()) {
-            await topListRef.set([]);
+        try {
+            const response = await fetch('data/existing_upgs_updated.csv');
+            const csvText = await response.text();
+            this.existingUPGs = this.parseCSV(csvText);
+        } catch (error) {
+            console.error('Error loading existing UPGs:', error);
+            throw error;
         }
     }
 
-    // Get unique countries from existing UPGs
-    getCountries() {
-        return [...new Set(this.existingUPGs.map(upg => upg.country))].sort();
+    async loadUUPGData() {
+        try {
+            const response = await fetch('data/updated_uupg.csv');
+            const csvText = await response.text();
+            this.uupgData = this.parseCSV(csvText);
+        } catch (error) {
+            console.error('Error loading UUPG data:', error);
+            throw error;
+        }
     }
 
-    // Get UPGs for a specific country
+    parseCSV(csvText) {
+        try {
+            const lines = csvText.split('\n');
+            const headers = lines[0].split(',').map(header => header.trim());
+            
+            return lines.slice(1)
+                .filter(line => line.trim() !== '')
+                .map(line => {
+                    const values = line.split(',');
+                    const entry = {};
+                    headers.forEach((header, index) => {
+                        entry[header] = values[index]?.trim() || '';
+                    });
+                    return entry;
+                });
+        } catch (error) {
+            console.error('Error parsing CSV:', error);
+            throw error;
+        }
+    }
+
+    getCountries() {
+        try {
+            const countries = [...new Set(this.existingUPGs.map(upg => upg.Country))];
+            return countries.sort();
+        } catch (error) {
+            console.error('Error getting countries:', error);
+            return [];
+        }
+    }
+
     getUPGsByCountry(country) {
-        return this.existingUPGs.filter(upg => upg.country === country);
+        try {
+            return this.existingUPGs
+                .filter(upg => upg.Country === country)
+                .map(upg => ({
+                    name: upg.PeopNameInCountry,
+                    latitude: parseFloat(upg.Latitude),
+                    longitude: parseFloat(upg.Longitude),
+                    pronunciation: upg.Pronunciation || ''
+                }))
+                .sort((a, b) => a.name.localeCompare(b.name));
+        } catch (error) {
+            console.error('Error getting UPGs by country:', error);
+            return [];
+        }
+    }
+
+    async initializeFirebaseData() {
+        try {
+            const topListRef = this.database.ref('top100List');
+            const snapshot = await topListRef.once('value');
+            
+            if (!snapshot.exists()) {
+                await topListRef.set([]);
+            }
+        } catch (error) {
+            console.error('Error initializing Firebase data:', error);
+            throw error;
+        }
     }
 
     // Calculate distance between two points using Haversine formula
