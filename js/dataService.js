@@ -21,7 +21,7 @@ class DataService {
 
     async loadUPGsData() {
         try {
-            const response = await fetch('/FrontierFinder/data/existing_upgs.csv');
+            const response = await fetch('data/existing_upgs_updated.csv');
             const csvText = await response.text();
             
             // Parse CSV
