@@ -9,33 +9,39 @@ let currentResults = {
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         await dataService.init();
-        const urlParams = new URLSearchParams(window.location.search);
-        const searchParams = {
-            country: urlParams.get('country'),
-            upg: urlParams.get('upg'),
-            radius: urlParams.get('radius'),
-            unit: urlParams.get('unit'),
-            type: urlParams.get('type')
-        };
+        const params = new URLSearchParams(window.location.search);
         
-        if (!searchParams.country || !searchParams.upg || !searchParams.radius || !searchParams.unit || !searchParams.type) {
-            alert('No search parameters found. Please perform a search first.');
+        // Get all required parameters
+        const searchParams = {
+            country: params.get('country'),
+            upgId: params.get('upg'),
+            upgName: params.get('name'),
+            latitude: parseFloat(params.get('lat')),
+            longitude: parseFloat(params.get('lng')),
+            radius: parseFloat(params.get('radius')),
+            unit: params.get('unit'),
+            type: params.get('type')
+        };
+
+        // Validate parameters
+        if (!searchParams.country || !searchParams.upgId || !searchParams.radius || 
+            !searchParams.unit || !searchParams.type || 
+            isNaN(searchParams.latitude) || isNaN(searchParams.longitude)) {
+            alert('Invalid search parameters. Please try searching again.');
             window.location.href = 'index.html';
             return;
         }
 
-        // Load and display results
-        currentResults = await performSearch(searchParams);
-        displayResults(currentResults);
-
-        // Initialize sorting
+        // Perform the search
+        await performSearch(searchParams);
+        
+        // Initialize UI components
         initializeSorting();
-
-        // Initialize event listeners
         initializeEventListeners();
     } catch (error) {
         console.error('Error initializing results page:', error);
-        // TODO: Show error message to user
+        alert('An error occurred while loading results. Please try again.');
+        window.location.href = 'index.html';
     }
 });
 
@@ -62,7 +68,7 @@ function initializeEventListeners() {
                     window.location.href = 'top100.html';
                 } catch (error) {
                     console.error('Error adding groups to Top 100:', error);
-                    // TODO: Show error message to user
+                    alert('Error adding groups to Top 100 list. Please try again.');
                 }
             } else {
                 alert('Please select at least one group to add to the Top 100 list.');
@@ -71,96 +77,64 @@ function initializeEventListeners() {
     }
 }
 
-function initializeSorting() {
-    const sortButtons = document.querySelectorAll('.sort-button');
-    
-    sortButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const sortType = button.dataset.sort;
-            const currentDirection = button.dataset.direction || 'none';
-            const newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
-
-            // Update button states
-            sortButtons.forEach(btn => {
-                btn.dataset.direction = btn === button ? newDirection : 'none';
-                btn.querySelector('.sort-icon').textContent = 
-                    btn === button 
-                        ? (newDirection === 'asc' ? 'arrow_upward' : 'arrow_downward')
-                        : 'unfold_more';
-            });
-
-            // Sort and display results
-            sortResults(sortType, newDirection);
-        });
-    });
-
-    // Initial sort by distance
-    sortResults('distance', 'desc');
-}
-
-function sortResults(sortType, direction) {
-    const sortFn = (a, b) => {
-        const multiplier = direction === 'asc' ? 1 : -1;
-        
-        switch (sortType) {
-            case 'distance':
-                return multiplier * (a.distance - b.distance);
-            case 'population':
-                return multiplier * (parseInt(b.population) - parseInt(a.population));
-            case 'type':
-                return multiplier * a.type.localeCompare(b.type);
-            case 'religion':
-                return multiplier * a.religion.localeCompare(b.religion);
-            case 'language':
-                return multiplier * a.language.localeCompare(b.language);
-            default:
-                return 0;
-        }
-    };
-
-    currentResults.fpgs.sort(sortFn);
-    currentResults.uupgs.sort(sortFn);
-    displayResults(currentResults);
-}
-
 async function performSearch(params) {
     try {
-        const { upg, radius, unit, type } = params;
         const results = await dataService.findGroupsWithinRadius(
-            upg.latitude,
-            upg.longitude,
-            radius,
-            unit,
-            type
+            params.latitude,
+            params.longitude,
+            params.radius,
+            params.unit,
+            params.type
         );
 
-        return {
-            fpgs: results.filter(group => group.type === 'FPG'),
-            uupgs: results.filter(group => group.type === 'UUPG')
-        };
+        currentResults = results;
+        displayResults(results);
+        
+        // Enable the "Add to Top 100" button if we have results
+        const addToTop100Button = document.getElementById('addToTop100');
+        if (addToTop100Button) {
+            addToTop100Button.disabled = false;
+        }
     } catch (error) {
         console.error('Error performing search:', error);
-        throw error;
+        alert('Error performing search. Please try again.');
     }
 }
 
 function displayResults(results) {
-    const fpgContainer = document.getElementById('fpgResults');
-    const uupgContainer = document.getElementById('uupgResults');
+    const resultsContainer = document.getElementById('results-list');
+    resultsContainer.innerHTML = '';
+
+    if (!results.fpgs.length && !results.uupgs.length) {
+        resultsContainer.innerHTML = '<p class="no-results">No groups found within the specified radius.</p>';
+        return;
+    }
 
     // Display FPGs
-    fpgContainer.innerHTML = '';
-    results.fpgs.forEach(group => {
-        const card = createGroupCard(group, 'fpg');
-        fpgContainer.appendChild(card);
-    });
+    if (results.fpgs.length > 0) {
+        const fpgSection = document.createElement('div');
+        fpgSection.className = 'results-section';
+        fpgSection.innerHTML = '<h3>Frontier People Groups (FPGs)</h3>';
+        
+        results.fpgs.forEach(group => {
+            fpgSection.appendChild(createGroupCard(group, 'fpg'));
+        });
+        
+        resultsContainer.appendChild(fpgSection);
+    }
 
     // Display UUPGs
-    uupgContainer.innerHTML = '';
-    results.uupgs.forEach(group => {
-        const card = createGroupCard(group, 'uupg');
-        uupgContainer.appendChild(card);
-    });
+    if (results.uupgs.length > 0) {
+        const uupgSection = document.createElement('div');
+        uupgSection.className = 'results-section';
+        uupgSection.innerHTML = '<h3>Unengaged Unreached People Groups (UUPGs)</h3>';
+        
+        results.uupgs.forEach(group => {
+            uupgSection.appendChild(createGroupCard(group, 'uupg'));
+        });
+        
+        resultsContainer.appendChild(uupgSection);
+    }
 }
 
 function createGroupCard(group, type) {
@@ -221,9 +195,63 @@ function createGroupCard(group, type) {
 }
 
 function getSelectedGroups() {
-    const selectedGroups = [];
-    document.querySelectorAll('.upg-card-checkbox:checked').forEach(checkbox => {
-        selectedGroups.push(checkbox.dataset.groupId);
+    const checkboxes = document.querySelectorAll('.upg-card-checkbox:checked');
+    return Array.from(checkboxes).map(checkbox => {
+        const [type, name] = checkbox.dataset.groupId.split('-');
+        const group = [...currentResults.fpgs, ...currentResults.uupgs]
+            .find(g => g.name === name);
+        return { ...group, type };
     });
-    return selectedGroups;
+}
+
+function initializeSorting() {
+    const sortButtons = document.querySelectorAll('.sort-button');
+    
+    sortButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const sortType = button.dataset.sort;
+            const currentDirection = button.dataset.direction || 'none';
+            const newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+
+            // Update button states
+            sortButtons.forEach(btn => {
+                btn.dataset.direction = btn === button ? newDirection : 'none';
+                btn.querySelector('.sort-icon').textContent = 
+                    btn === button 
+                        ? (newDirection === 'asc' ? 'arrow_upward' : 'arrow_downward')
+                        : 'unfold_more';
+            });
+
+            // Sort and display results
+            sortResults(sortType, newDirection);
+        });
+    });
+
+    // Initial sort by distance
+    sortResults('distance', 'desc');
+}
+
+function sortResults(sortType, direction) {
+    const sortFn = (a, b) => {
+        const multiplier = direction === 'asc' ? 1 : -1;
+        
+        switch (sortType) {
+            case 'distance':
+                return multiplier * (a.distance - b.distance);
+            case 'population':
+                return multiplier * (parseInt(b.population) - parseInt(a.population));
+            case 'type':
+                return multiplier * a.type.localeCompare(b.type);
+            case 'religion':
+                return multiplier * a.religion.localeCompare(b.religion);
+            case 'language':
+                return multiplier * a.language.localeCompare(b.language);
+            default:
+                return 0;
+        }
+    };
+
+    currentResults.fpgs.sort(sortFn);
+    currentResults.uupgs.sort(sortFn);
+    displayResults({ fpgs: currentResults.fpgs, uupgs: currentResults.uupgs });
 }

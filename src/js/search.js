@@ -43,7 +43,12 @@ async function initializeSearchForm() {
                 
                 upgs.forEach(upg => {
                     const option = document.createElement('option');
-                    option.value = upg.id;
+                    option.value = JSON.stringify({
+                        id: upg.id,
+                        name: upg.name,
+                        latitude: upg.latitude,
+                        longitude: upg.longitude
+                    });
                     option.textContent = upg.name;
                     if (upg.pronunciation) {
                         option.textContent += ` (${upg.pronunciation})`;
@@ -61,36 +66,32 @@ async function initializeSearchForm() {
         searchForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const selectedUPGId = upgSelect.value;
-            console.log('Selected UPG ID:', selectedUPGId);
-            
-            if (!selectedUPGId) {
+            const selectedUPGData = upgSelect.value;
+            if (!selectedUPGData) {
                 alert('Please select a UPG');
                 return;
             }
 
             try {
-                const selectedUPG = await dataService.getUPGById(selectedUPGId);
-                console.log('Selected UPG data:', selectedUPG);
-                
-                if (!selectedUPG) {
-                    throw new Error('Selected UPG not found');
-                }
+                const selectedUPG = JSON.parse(selectedUPGData);
+                const radius = document.getElementById('radius').value;
+                const unit = document.querySelector('input[name="unit"]:checked').value;
+                const type = document.getElementById('searchType').value;
 
-                const searchParams = {
-                    upg: selectedUPG,
-                    radius: document.getElementById('radius').value,
-                    unit: document.querySelector('input[name="unit"]:checked').value,
-                    searchType: document.getElementById('searchType').value
-                };
+                // Build URL with search parameters
+                const params = new URLSearchParams({
+                    country: countrySelect.value,
+                    upg: selectedUPG.id,
+                    name: selectedUPG.name,
+                    lat: selectedUPG.latitude,
+                    lng: selectedUPG.longitude,
+                    radius: radius,
+                    unit: unit,
+                    type: type
+                });
 
-                console.log('Search parameters:', searchParams);
-                
-                // Store search parameters
-                sessionStorage.setItem('searchParams', JSON.stringify(searchParams));
-                
-                // Navigate to results page
-                window.location.href = 'results.html';
+                // Navigate to results page with parameters
+                window.location.href = `results.html?${params.toString()}`;
             } catch (error) {
                 console.error('Error during search:', error);
                 alert('Error processing search: ' + error.message);
