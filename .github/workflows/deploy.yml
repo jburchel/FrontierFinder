@@ -59,15 +59,15 @@ jobs:
           # Create deployment directory
           mkdir -p public
           
-          # Copy HTML files to root of public
-          cp src/html/*.html public/
+          # Copy HTML files from root to public
+          cp *.html public/
           
           # Create asset directories
-          mkdir -p public/css public/js public/data public/images
+          mkdir -p public/src/css public/src/js public/data public/images
           
           # Copy assets
-          cp -r src/css/* public/css/
-          cp -r src/js/* public/js/
+          cp -r src/css/* public/src/css/
+          cp -r src/js/* public/src/js/
           cp -r data/* public/data/
           cp -r images/* public/images/
           
