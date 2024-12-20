@@ -4,26 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Frontier Finder - Crossover Global</title>
-    <link rel="stylesheet" href="/FrontierFinder/src/css/styles.css">
+    <link rel="stylesheet" href="src/css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="/FrontierFinder/images/favicon.png">
 </head>
 <body>
     <div class="container">
-        <header class="app-header">
+        <header>
             <div class="logo-container">
-                <img src="/FrontierFinder/images/crossover-global-logo.png" alt="Crossover Global Logo" class="logo">
+                <img src="images/crossover-global-logo.png" alt="Crossover Global Logo" class="logo">
             </div>
             <h1>Frontier Finder</h1>
             <h2 class="mission-statement">"We provide gospel access to unreached people groups."</h2>
         </header>
 
-        <main class="main-content">
+        <main>
             <section class="search-section">
                 <h2>Find Frontier and Unengaged People Groups</h2>
                 <p>Search for Frontier People Groups (FPGs) and Unreached Unengaged People Groups (UUPGs) within a specified radius of a selected UPG where Crossover Global has a presence.</p>
 
-                <form id="searchForm" class="search-form">
+                <form id="searchForm">
                     <div class="form-group">
                         <label for="country">Select Country:</label>
                         <select id="country" name="country" required>
@@ -40,7 +39,7 @@
 
                     <div class="form-group">
                         <label for="radius">Search Radius:</label>
-                        <div class="radius-input">
+                        <div class="radius-group">
                             <input type="number" id="radius" name="radius" required min="1">
                             <div class="radio-group">
                                 <label>
@@ -79,8 +78,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js" type="module"></script>
     
     <!-- Application Scripts -->
-    <script src="/FrontierFinder/src/js/config.js" type="module"></script>
-    <script src="/FrontierFinder/src/js/dataService.js" type="module"></script>
-    <script src="/FrontierFinder/src/js/search.js" type="module"></script>
+    <script src="src/js/config.js" type="module"></script>
+    <script src="src/js/dataService.js" type="module"></script>
+    <script src="src/js/search.js" type="module"></script>
 </body>
 </html>
