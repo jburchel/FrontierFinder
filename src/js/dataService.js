@@ -70,7 +70,7 @@ class DataService {
             }
 
             // Build URL with validated parameters
-            const url = new URL('https://api.joshuaproject.net/v1/people_groups/search.json');
+            const url = new URL('https://joshuaproject.net/api/v2/people_groups?api_key=080e14ad747e');
             url.searchParams.append('api_key', this.jpApiKey);
             url.searchParams.append('latitude', formattedLat);
             url.searchParams.append('longitude', formattedLon);
