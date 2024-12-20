@@ -102,3 +102,32 @@ async function initializeSearchForm() {
         alert('Error setting up the search form. Please refresh the page.');
     }
 }
+
+// Test function to verify data integration
+async function testDataIntegration() {
+    try {
+        await dataService.init();
+        
+        // Test coordinates (example: Dhaka, Bangladesh)
+        const testLat = 23.8103;
+        const testLon = 90.4125;
+        const testRadius = 100;
+        
+        console.log('Testing FPG data...');
+        const fpgResults = await dataService.findGroupsWithinRadius(testLat, testLon, testRadius, 'kilometers', 'FPG');
+        console.log('FPG Results:', fpgResults);
+        
+        console.log('Testing UUPG data...');
+        const uupgResults = await dataService.findGroupsWithinRadius(testLat, testLon, testRadius, 'kilometers', 'UUPG');
+        console.log('UUPG Results:', uupgResults);
+        
+        console.log('Testing combined data...');
+        const combinedResults = await dataService.findGroupsWithinRadius(testLat, testLon, testRadius, 'kilometers');
+        console.log('Combined Results:', combinedResults);
+    } catch (error) {
+        console.error('Test failed:', error);
+    }
+}
+
+// Run test when page loads
+window.addEventListener('load', testDataIntegration);
