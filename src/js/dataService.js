@@ -78,8 +78,8 @@ class DataService {
             url.searchParams.append('radius_unit', formattedUnit);
             url.searchParams.append('frontier_only', 'true');
 
-            console.log('Fetching from URL:', url.toString());  // For debugging
-
+            console.log('Fetching from URL:', url.href);  // For debugging
+            console.log('Full URL:', url.href);  // For debugging
             const response = await fetch(url);
 
             if (!response.ok) {
