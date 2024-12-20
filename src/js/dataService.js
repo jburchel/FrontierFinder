@@ -1,10 +1,12 @@
 import { getDatabase, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-import { app } from './config.js';
+import { app, JOSHUA_PROJECT_API_KEY } from './config.js';
 
 class DataService {
     constructor() {
         this.db = getDatabase(app);
         this.existingUPGs = null;
+        this.uupgs = null;
+        this.jpApiKey = JOSHUA_PROJECT_API_KEY; // We'll need to get this from environment variables
     }
 
     async init() {
@@ -13,6 +15,11 @@ class DataService {
             if (!this.existingUPGs) {
                 await this.loadUPGsData();
             }
+            if (!this.uupgs) {
+                await this.loadUUPGsData();
+            }
+            // Load Joshua Project API key
+            // TODO: Implement secure way to get API key
         } catch (error) {
             console.error('Error initializing DataService:', error);
             throw error;
@@ -23,13 +30,73 @@ class DataService {
         try {
             const response = await fetch('data/existing_upgs_updated.csv');
             const csvText = await response.text();
-            
-            // Parse CSV
             this.existingUPGs = this.parseCSV(csvText);
             console.log('UPGs data loaded:', this.existingUPGs);
         } catch (error) {
             console.error('Error loading UPGs data:', error);
             throw error;
+        }
+    }
+
+    async loadUUPGsData() {
+        try {
+            const response = await fetch('data/updated_uupg.csv');
+            const csvText = await response.text();
+            this.uupgs = this.parseCSV(csvText);
+            console.log('UUPGs data loaded:', this.uupgs);
+        } catch (error) {
+            console.error('Error loading UUPGs data:', error);
+            this.uupgs = []; // Initialize as empty if file doesn't exist yet
+        }
+    }
+
+    async fetchFPGFromJoshuaProject(lat, lon, radius, unit) {
+        try {
+            if (!this.jpApiKey) {
+                console.error('Joshua Project API key not set');
+                return [];
+            }
+
+            const response = await fetch(
+                `https://api.joshuaproject.net/v1/people_groups/search.json?` +
+                `api_key=${this.jpApiKey}&` +
+                `latitude=${lat}&` +
+                `longitude=${lon}&` +
+                `radius=${radius}&` +
+                `radius_unit=${unit}&` +
+                `frontier_only=true`
+            );
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            // Transform Joshua Project data to match our format
+            return data.map(fpg => ({
+                id: `${fpg.peo_name}-${fpg.cntry_name}`.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+                PeopleName: fpg.peo_name,
+                pronunciation: fpg.peo_pronunciation || '',
+                Country: fpg.cntry_name,
+                Population: fpg.peo_population || '0',
+                Language: fpg.primary_language_name || 'Unknown',
+                Religion: fpg.primary_religion_name || 'Unknown',
+                Latitude: fpg.latitude.toString(),
+                Longitude: fpg.longitude.toString(),
+                'Global Status of  Evangelical Christianity': fpg.gsec || '',
+                'Evangelical Engagement': 'Unengaged',
+                'Physical Exertion': 'Unknown',
+                'Freedom Index': fpg.persecution_level || 'Unknown',
+                'Government Restrictions Index': 'Unknown',
+                'Social Hostilities Index': 'Unknown',
+                'Threat Level': 'Unknown',
+                ROP: fpg.rop3 || '',
+                distance: 0 // Will be calculated later
+            }));
+        } catch (error) {
+            console.error('Error fetching from Joshua Project:', error);
+            return [];
         }
     }
 
@@ -40,22 +107,128 @@ class DataService {
         return lines.slice(1)
             .filter(line => line.trim())
             .map(line => {
-                const values = line.split(',').map(v => v.trim());
+                // Handle quoted values that may contain commas
+                const values = [];
+                let currentValue = '';
+                let insideQuotes = false;
+                
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    if (char === '"') {
+                        insideQuotes = !insideQuotes;
+                    } else if (char === ',' && !insideQuotes) {
+                        values.push(currentValue.trim());
+                        currentValue = '';
+                    } else {
+                        currentValue += char;
+                    }
+                }
+                values.push(currentValue.trim()); // Add the last value
+                
                 const record = {};
                 headers.forEach((header, index) => {
-                    record[header] = values[index];
+                    let value = values[index] || '';
+                    // Remove any remaining quotes
+                    value = value.replace(/^"|"$/g, '').trim();
+                    record[header] = value;
                 });
-                // Generate a unique ID for each UPG
-                record.id = record.name.toLowerCase().replace(/\s+/g, '-');
+                
+                // Create a unique ID using PeopleName and Country
+                record.id = `${record.PeopleName}-${record.Country}`.toLowerCase().replace(/[^a-z0-9]+/g, '-');
                 return record;
             });
     }
 
-    getCountries() {
-        if (!this.existingUPGs) {
-            throw new Error('UPGs data not loaded');
+    calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Earth's radius in kilometers
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    };
+
+    async findGroupsWithinRadius(lat, lon, radius, unit, type) {
+        if (!this.existingUPGs || !this.uupgs) {
+            throw new Error('Data not loaded');
         }
-        return [...new Set(this.existingUPGs.map(upg => upg.country))].sort();
+
+        // Convert radius to kilometers if in miles
+        const radiusInKm = unit === 'miles' ? radius * 1.60934 : radius;
+
+        let results = [];
+
+        // Handle FPGs from Joshua Project API
+        if (type === 'FPG') {
+            results = await this.fetchFPGFromJoshuaProject(lat, lon, radius, unit);
+        } 
+        // Handle UUPGs from CSV data
+        else if (type === 'UUPG') {
+            results = this.uupgs
+                .filter(group => {
+                    if (!group.Latitude || !group.Longitude) return false;
+                    const distance = this.calculateDistance(
+                        lat, lon,
+                        parseFloat(group.Latitude),
+                        parseFloat(group.Longitude)
+                    );
+                    return distance <= radiusInKm;
+                })
+                .map(group => ({
+                    ...group,
+                    distance: this.calculateDistance(
+                        lat, lon,
+                        parseFloat(group.Latitude),
+                        parseFloat(group.Longitude)
+                    )
+                }))
+                .sort((a, b) => a.distance - b.distance);
+        }
+        // If no type specified, get both FPGs and UUPGs
+        else {
+            const fpgs = await this.fetchFPGFromJoshuaProject(lat, lon, radius, unit);
+            const uupgs = this.uupgs
+                .filter(group => {
+                    if (!group.Latitude || !group.Longitude) return false;
+                    const distance = this.calculateDistance(
+                        lat, lon,
+                        parseFloat(group.Latitude),
+                        parseFloat(group.Longitude)
+                    );
+                    return distance <= radiusInKm;
+                })
+                .map(group => ({
+                    ...group,
+                    distance: this.calculateDistance(
+                        lat, lon,
+                        parseFloat(group.Latitude),
+                        parseFloat(group.Longitude)
+                    )
+                }));
+
+            results = [...fpgs, ...uupgs].sort((a, b) => a.distance - b.distance);
+        }
+
+        return results;
+    }
+
+    async addToTop100(groups) {
+        const top100Ref = ref(this.db, 'top100');
+        const existingData = (await get(top100Ref)).val() || {};
+        
+        groups.forEach(groupId => {
+            existingData[groupId] = true;
+        });
+        
+        await set(top100Ref, existingData);
+    }
+
+    async removeFromTop100(groupId) {
+        const groupRef = ref(this.db, `top100/${groupId}`);
+        await remove(groupRef);
     }
 
     async getUPGsForCountry(country) {
@@ -107,89 +280,11 @@ class DataService {
         };
     }
 
-    async findGroupsWithinRadius(lat, lon, radius, unit, type) {
+    getCountries() {
         if (!this.existingUPGs) {
             throw new Error('UPGs data not loaded');
         }
-
-        // Convert radius to kilometers if in miles
-        const radiusInKm = unit === 'miles' ? radius * 1.60934 : radius;
-
-        // Function to calculate distance between two points using Haversine formula
-        const calculateDistance = (lat1, lon1, lat2, lon2) => {
-            const R = 6371; // Earth's radius in kilometers
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = 
-                Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-                Math.sin(dLon/2) * Math.sin(dLon/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
-        };
-
-        // Filter UPGs based on distance and type
-        const filteredGroups = this.existingUPGs
-            .filter(upg => {
-                // Skip if latitude or longitude is missing
-                if (!upg.latitude || !upg.longitude) return false;
-
-                // Calculate distance
-                const distance = calculateDistance(
-                    lat,
-                    lon,
-                    parseFloat(upg.latitude),
-                    parseFloat(upg.longitude)
-                );
-
-                // Convert distance to miles if needed
-                const displayDistance = unit === 'miles' ? distance / 1.60934 : distance;
-
-                // Add distance to the UPG object
-                upg.distance = Math.round(displayDistance * 10) / 10;
-
-                // Check if within radius
-                return distance <= radiusInKm;
-            })
-            .filter(upg => {
-                // Filter by type if specified
-                if (type === 'both') return true;
-                return upg.type.toLowerCase() === type.toLowerCase();
-            })
-            .map(upg => ({
-                id: upg.id,
-                name: upg.name,
-                pronunciation: upg.pronunciation,
-                type: upg.type,
-                country: upg.country,
-                population: parseInt(upg.population),
-                religion: upg.religion,
-                language: upg.language,
-                evangelical: parseFloat(upg.evangelical),
-                distance: upg.distance
-            }));
-
-        // Separate into FPGs and UUPGs
-        return {
-            fpgs: filteredGroups.filter(g => g.type.toLowerCase() === 'fpg'),
-            uupgs: filteredGroups.filter(g => g.type.toLowerCase() === 'uupg')
-        };
-    }
-
-    async addToTop100(groups) {
-        const top100Ref = ref(this.db, 'top100');
-        const existingData = (await get(top100Ref)).val() || {};
-        
-        groups.forEach(groupId => {
-            existingData[groupId] = true;
-        });
-        
-        await set(top100Ref, existingData);
-    }
-
-    async removeFromTop100(groupId) {
-        const groupRef = ref(this.db, `top100/${groupId}`);
-        await remove(groupRef);
+        return [...new Set(this.existingUPGs.map(upg => upg.country))].sort();
     }
 }
 

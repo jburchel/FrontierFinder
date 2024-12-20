@@ -18,8 +18,8 @@ const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
 // Joshua Project API configuration
-const JOSHUA_PROJECT_API_KEY = "080e14ad747e";
-const JOSHUA_PROJECT_API_BASE_URL = 'https://api.joshuaproject.net/v1';
+export const JOSHUA_PROJECT_API_KEY = import.meta.env.VITE_JOSHUA_PROJECT_API_KEY;
+export const JOSHUA_PROJECT_API_BASE_URL = 'https://api.joshuaproject.net/v1';
 
 // Export configurations
 export { 
