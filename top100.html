@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search Results - Frontier Finder</title>
+    <title>Top 100 UPGs - Frontier Finder</title>
     <link rel="stylesheet" href="src/css/styles.css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="images/favicon.png">
 </head>
@@ -15,18 +14,16 @@
             <div class="logo-container">
                 <img src="images/crossover-global-logo.png" alt="Crossover Global Logo" class="logo">
             </div>
-            <h1 class="mission-statement">"Spiritual needs are everywhere, but access to the gospel is not."</h1>
-            <h1>Search Results</h1>
+            <h1 class="mission-statement">"We provide gospel access to unreached people groups."</h1>
+            <h1>Top 100 Priority List</h1>
             <nav>
                 <a href="index.html" class="back-link">← Back to Search</a>
-                <a href="top100.html" class="top-100-link">View Top 100 List</a>
             </nav>
         </header>
 
         <main>
-            <section class="results-section">
-                <div class="results-header">
-                    <h2>Found Groups</h2>
+            <section class="top-100-section">
+                <div class="list-controls">
                     <div class="sort-controls">
                         <label for="sortBy">Sort by:</label>
                         <select id="sortBy">
@@ -37,13 +34,9 @@
                     </div>
                 </div>
 
-                <div id="results-list" class="results-list">
-                    <!-- Results will be populated here by JavaScript -->
+                <div id="top-100-list" class="upg-list">
+                    <!-- List will be populated by JavaScript -->
                 </div>
-            </section>
-
-            <section class="selection-controls">
-                <button id="addToTop100" class="primary-button" disabled>Add Selected to Top 100</button>
             </section>
         </main>
     </div>
@@ -55,6 +48,6 @@
     <!-- Application Scripts -->
     <script src="src/js/config.js" type="module"></script>
     <script src="src/js/dataService.js" type="module"></script>
-    <script src="src/js/results.js" type="module"></script>
+    <script src="src/js/top100.js" type="module"></script>
 </body>
 </html>
