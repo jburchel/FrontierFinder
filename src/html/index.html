@@ -4,68 +4,61 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Frontier Finder - Crossover Global</title>
-    <base href="/FrontierFinder/">
-    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="/FrontierFinder/src/css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="../images/favicon.png">
+    <link rel="icon" type="image/png" href="/FrontierFinder/images/favicon.png">
 </head>
 <body>
     <header class="app-header">
         <div class="logo-container">
-            <img src="../images/crossover-global-logo.png" alt="Crossover Global Logo" class="logo">
+            <img src="/FrontierFinder/images/crossover-global-logo.png" alt="Crossover Global Logo" class="logo">
         </div>
         <h1>Frontier Finder</h1>
         <h2 class="mission-statement">"We provide gospel access to unreached people groups."</h2>
     </header>
 
-    <main class="container">
+    <main class="main-content">
         <section class="search-section">
             <h2>Find Frontier and Unengaged People Groups</h2>
-            <p class="description">
-                Search for Frontier People Groups (FPGs) and Unreached Unengaged People Groups (UUPGs) within a specified radius of a selected UPG where Crossover Global has a presence.
-            </p>
+            <p>Search for Frontier People Groups (FPGs) and Unreached Unengaged People Groups (UUPGs) within a specified radius of a selected UPG where Crossover Global has a presence.</p>
 
             <form id="searchForm" class="search-form">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="country">Select Country:</label>
-                        <select id="country" name="country" required>
-                            <option value="">Select a country</option>
-                        </select>
-                    </div>
+                <div class="form-group">
+                    <label for="country">Select Country:</label>
+                    <select id="country" name="country" required>
+                        <option value="">Select a country</option>
+                    </select>
+                </div>
 
-                    <div class="form-group">
-                        <label for="upg">Select UPG:</label>
-                        <select id="upg" name="upg" required>
-                            <option value="">Select a UPG</option>
-                        </select>
-                    </div>
+                <div class="form-group">
+                    <label for="upg">Select UPG:</label>
+                    <select id="upg" name="upg" required>
+                        <option value="">Select a UPG</option>
+                    </select>
+                </div>
 
-                    <div class="form-group">
-                        <label for="radius">Search Radius:</label>
-                        <div class="radius-unit-group">
-                            <input type="number" id="radius" name="radius" min="1" required>
-                            <div class="radio-group">
-                                <label>
-                                    <input type="radio" name="unit" value="miles" checked>
-                                    Miles
-                                </label>
-                                <label>
-                                    <input type="radio" name="unit" value="kilometers">
-                                    Kilometers
-                                </label>
-                            </div>
+                <div class="form-group">
+                    <label for="radius">Search Radius:</label>
+                    <div class="radius-input">
+                        <input type="number" id="radius" name="radius" required min="1">
+                        <div class="radio-group">
+                            <label>
+                                <input type="radio" name="unit" value="miles" checked> Miles
+                            </label>
+                            <label>
+                                <input type="radio" name="unit" value="kilometers"> Kilometers
+                            </label>
                         </div>
                     </div>
+                </div>
 
-                    <div class="form-group">
-                        <label for="searchType">Search Type:</label>
-                        <select id="searchType" name="searchType">
-                            <option value="both">Both FPG and UUPG</option>
-                            <option value="fpg">FPG Only</option>
-                            <option value="uupg">UUPG Only</option>
-                        </select>
-                    </div>
+                <div class="form-group">
+                    <label for="searchType">Search Type:</label>
+                    <select id="searchType" name="searchType">
+                        <option value="both">Both FPG and UUPG</option>
+                        <option value="fpg">FPG Only</option>
+                        <option value="uupg">UUPG Only</option>
+                    </select>
                 </div>
 
                 <button type="submit" class="search-button">Search</button>
@@ -74,8 +67,8 @@
 
         <section class="top-100-section">
             <h2>Top 100 Priority List</h2>
-            <p class="description">View and manage your prioritized list of unreached people groups.</p>
-            <a href="top_100.html" class="view-list-button">View List</a>
+            <p>View and manage your prioritized list of unreached people groups.</p>
+            <a href="top100.html" class="view-list">View List</a>
         </section>
     </main>
 
@@ -84,15 +77,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js" type="module"></script>
     
     <!-- Application Scripts -->
-    <script src="../js/config.js" type="module"></script>
-    <script src="../js/dataService.js" type="module"></script>
-    <script src="../js/search.js" type="module"></script>
-    
-    <!-- Firebase Scripts -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-        window.firebase = { initializeApp, getDatabase };
-    </script>
+    <script src="/FrontierFinder/src/js/config.js" type="module"></script>
+    <script src="/FrontierFinder/src/js/dataService.js" type="module"></script>
+    <script src="/FrontierFinder/src/js/search.js" type="module"></script>
 </body>
 </html>
