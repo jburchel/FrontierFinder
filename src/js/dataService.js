@@ -57,17 +57,38 @@ class DataService {
                 return [];
             }
 
-            const response = await fetch(
-                `https://api.joshuaproject.net/v1/people_groups/search.json?` +
-                `api_key=${this.jpApiKey}&` +
-                `latitude=${lat}&` +
-                `longitude=${lon}&` +
-                `radius=${radius}&` +
-                `radius_unit=${unit}&` +
-                `frontier_only=true`
-            );
+            // Ensure values are properly formatted
+            const formattedLat = parseFloat(lat).toFixed(6);
+            const formattedLon = parseFloat(lon).toFixed(6);
+            const formattedRadius = parseInt(radius);
+            const formattedUnit = unit.toLowerCase();
+
+            // Validate values
+            if (isNaN(formattedLat) || isNaN(formattedLon) || isNaN(formattedRadius)) {
+                console.error('Invalid coordinates or radius');
+                return [];
+            }
+
+            // Build URL with validated parameters
+            const url = new URL('https://api.joshuaproject.net/v1/people_groups/search.json');
+            url.searchParams.append('api_key', this.jpApiKey);
+            url.searchParams.append('latitude', formattedLat);
+            url.searchParams.append('longitude', formattedLon);
+            url.searchParams.append('radius', formattedRadius);
+            url.searchParams.append('radius_unit', formattedUnit);
+            url.searchParams.append('frontier_only', 'true');
+
+            console.log('Fetching from URL:', url.toString());  // For debugging
+
+            const response = await fetch(url);
 
             if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Joshua Project API error:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    response: errorText
+                });
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
