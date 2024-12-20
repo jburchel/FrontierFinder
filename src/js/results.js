@@ -1,5 +1,5 @@
 import { dataService } from './dataService.js';
-import { playPronunciation } from './pronunciation.js';
+import { playPronunciation, createPronunciationElement } from './pronunciation.js';
 
 let currentResults = {
     fpgs: [],
@@ -9,9 +9,16 @@ let currentResults = {
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         await dataService.init();
-        const searchParams = JSON.parse(sessionStorage.getItem('searchParams'));
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchParams = {
+            country: urlParams.get('country'),
+            upg: urlParams.get('upg'),
+            radius: urlParams.get('radius'),
+            unit: urlParams.get('unit'),
+            type: urlParams.get('type')
+        };
         
-        if (!searchParams) {
+        if (!searchParams.country || !searchParams.upg || !searchParams.radius || !searchParams.unit || !searchParams.type) {
             alert('No search parameters found. Please perform a search first.');
             window.location.href = 'index.html';
             return;
@@ -24,27 +31,45 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Initialize sorting
         initializeSorting();
 
-        // Handle adding to Top 100
-        document.getElementById('addToTop100').addEventListener('click', async () => {
-            const selectedGroups = getSelectedGroups();
-            if (selectedGroups.length === 0) {
-                alert('Please select at least one group to add to the Top 100 list.');
-                return;
-            }
-
-            try {
-                await dataService.addToTop100(selectedGroups);
-                alert('Selected groups have been added to the Top 100 list.');
-            } catch (error) {
-                console.error('Error adding to Top 100:', error);
-                alert('An error occurred while adding to the Top 100 list.');
-            }
-        });
+        // Initialize event listeners
+        initializeEventListeners();
     } catch (error) {
         console.error('Error initializing results page:', error);
-        alert('An error occurred while loading the results.');
+        // TODO: Show error message to user
     }
 });
+
+function initializeEventListeners() {
+    // Add event listener for play buttons
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('.play-button')) {
+            const button = e.target.closest('.play-button');
+            const card = button.closest('.upg-card');
+            const name = card.querySelector('.upg-name').textContent;
+            const pronunciation = button.dataset.pronunciation;
+            playPronunciation(name, pronunciation);
+        }
+    });
+
+    // Add event listener for "Add to Top 100" button
+    const addToTop100Button = document.getElementById('addToTop100');
+    if (addToTop100Button) {
+        addToTop100Button.addEventListener('click', async () => {
+            const selectedGroups = getSelectedGroups();
+            if (selectedGroups.length > 0) {
+                try {
+                    await dataService.addToTop100(selectedGroups);
+                    window.location.href = 'top100.html';
+                } catch (error) {
+                    console.error('Error adding groups to Top 100:', error);
+                    // TODO: Show error message to user
+                }
+            } else {
+                alert('Please select at least one group to add to the Top 100 list.');
+            }
+        });
+    }
+}
 
 function initializeSorting() {
     const sortButtons = document.querySelectorAll('.sort-button');
@@ -100,13 +125,13 @@ function sortResults(sortType, direction) {
 
 async function performSearch(params) {
     try {
-        const { upg, radius, unit, searchType } = params;
+        const { upg, radius, unit, type } = params;
         const results = await dataService.findGroupsWithinRadius(
             upg.latitude,
             upg.longitude,
             radius,
             unit,
-            searchType
+            type
         );
 
         return {
@@ -124,59 +149,75 @@ function displayResults(results) {
     const uupgContainer = document.getElementById('uupgResults');
 
     // Display FPGs
-    fpgContainer.innerHTML = results.fpgs.map(group => createGroupCard(group, 'fpg')).join('');
+    fpgContainer.innerHTML = '';
+    results.fpgs.forEach(group => {
+        const card = createGroupCard(group, 'fpg');
+        fpgContainer.appendChild(card);
+    });
 
     // Display UUPGs
-    uupgContainer.innerHTML = results.uupgs.map(group => createGroupCard(group, 'uupg')).join('');
-
-    // Add event listeners for play buttons
-    document.querySelectorAll('.play-button').forEach(button => {
-        button.addEventListener('click', () => {
-            const pronunciation = button.dataset.pronunciation;
-            playPronunciation(pronunciation);
-        });
+    uupgContainer.innerHTML = '';
+    results.uupgs.forEach(group => {
+        const card = createGroupCard(group, 'uupg');
+        uupgContainer.appendChild(card);
     });
 }
 
 function createGroupCard(group, type) {
-    return `
-        <div class="upg-card">
-            <div class="upg-card-header">
-                <input type="checkbox" class="upg-card-checkbox" data-group-id="${type}-${group.name}">
-                <h3 class="upg-name">${group.name}</h3>
-                <span class="pronunciation">(${group.pronunciation})</span>
-                <button class="play-button" data-pronunciation="${group.pronunciation}">
-                    <span class="material-icons">play_arrow</span>
-                </button>
+    const card = document.createElement('div');
+    card.className = 'upg-card';
+    
+    const header = document.createElement('div');
+    header.className = 'upg-card-header';
+    
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'upg-card-checkbox';
+    checkbox.dataset.groupId = `${type}-${group.name}`;
+    
+    const name = document.createElement('h3');
+    name.className = 'upg-name';
+    name.textContent = group.name;
+    
+    // Create pronunciation element with play button
+    const pronunciationElement = createPronunciationElement(group.name, group.pronunciation);
+    
+    header.appendChild(checkbox);
+    header.appendChild(name);
+    header.appendChild(pronunciationElement);
+    
+    const content = document.createElement('div');
+    content.className = 'upg-card-content';
+    content.innerHTML = `
+        <div class="upg-info-left">
+            <div>
+                <div class="upg-info-label">Country</div>
+                <div class="upg-info-value">${group.country}</div>
             </div>
-            <div class="upg-card-content">
-                <div class="upg-info-left">
-                    <div>
-                        <div class="upg-info-label">Country</div>
-                        <div class="upg-info-value">${group.country}</div>
-                    </div>
-                    <div>
-                        <div class="upg-info-label">Population</div>
-                        <div class="upg-info-value">${group.population.toLocaleString()}</div>
-                    </div>
-                </div>
-                <div class="upg-info-right">
-                    <div>
-                        <div class="upg-info-label">Religion</div>
-                        <div class="upg-info-value">${group.religion}</div>
-                    </div>
-                    <div>
-                        <div class="upg-info-label">Language</div>
-                        <div class="upg-info-value">${group.language}</div>
-                    </div>
-                    <div>
-                        <div class="upg-info-label">Evangelical %</div>
-                        <div class="upg-info-value">${group.evangelical}%</div>
-                    </div>
-                </div>
+            <div>
+                <div class="upg-info-label">Population</div>
+                <div class="upg-info-value">${group.population.toLocaleString()}</div>
+            </div>
+        </div>
+        <div class="upg-info-right">
+            <div>
+                <div class="upg-info-label">Religion</div>
+                <div class="upg-info-value">${group.religion}</div>
+            </div>
+            <div>
+                <div class="upg-info-label">Language</div>
+                <div class="upg-info-value">${group.language}</div>
+            </div>
+            <div>
+                <div class="upg-info-label">Evangelical %</div>
+                <div class="upg-info-value">${group.evangelical}%</div>
             </div>
         </div>
     `;
+    
+    card.appendChild(header);
+    card.appendChild(content);
+    return card;
 }
 
 function getSelectedGroups() {

@@ -49,5 +49,15 @@ class PronunciationService {
     }
 }
 
-// Create global instance
+// Create a singleton instance
 const pronunciationService = new PronunciationService();
+
+// Export the function for playing pronunciations
+export const playPronunciation = (name, pronunciation) => {
+    pronunciationService.speak(name, pronunciation);
+};
+
+// Export the service for creating pronunciation elements
+export const createPronunciationElement = (name, pronunciation) => {
+    return pronunciationService.createPronunciationElement(name, pronunciation);
+};
