@@ -108,32 +108,72 @@ class DataService {
     }
 
     async findGroupsWithinRadius(lat, lon, radius, unit, type) {
-        // TODO: Implement actual distance calculation and filtering
-        // For now, return sample data
-        return [
-            {
-                name: "Sample Group 1",
-                pronunciation: "sam-pul",
-                type: "FPG",
-                country: "Sample Country",
-                population: 100000,
-                religion: "Sample Religion",
-                language: "Sample Language",
-                evangelical: 0.5,
-                distance: 10
-            },
-            {
-                name: "Sample Group 2",
-                pronunciation: "sam-pul",
-                type: "UUPG",
-                country: "Sample Country",
-                population: 200000,
-                religion: "Sample Religion",
-                language: "Sample Language",
-                evangelical: 1.0,
-                distance: 20
-            }
-        ];
+        if (!this.existingUPGs) {
+            throw new Error('UPGs data not loaded');
+        }
+
+        // Convert radius to kilometers if in miles
+        const radiusInKm = unit === 'miles' ? radius * 1.60934 : radius;
+
+        // Function to calculate distance between two points using Haversine formula
+        const calculateDistance = (lat1, lon1, lat2, lon2) => {
+            const R = 6371; // Earth's radius in kilometers
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        };
+
+        // Filter UPGs based on distance and type
+        const filteredGroups = this.existingUPGs
+            .filter(upg => {
+                // Skip if latitude or longitude is missing
+                if (!upg.latitude || !upg.longitude) return false;
+
+                // Calculate distance
+                const distance = calculateDistance(
+                    lat,
+                    lon,
+                    parseFloat(upg.latitude),
+                    parseFloat(upg.longitude)
+                );
+
+                // Convert distance to miles if needed
+                const displayDistance = unit === 'miles' ? distance / 1.60934 : distance;
+
+                // Add distance to the UPG object
+                upg.distance = Math.round(displayDistance * 10) / 10;
+
+                // Check if within radius
+                return distance <= radiusInKm;
+            })
+            .filter(upg => {
+                // Filter by type if specified
+                if (type === 'both') return true;
+                return upg.type.toLowerCase() === type.toLowerCase();
+            })
+            .map(upg => ({
+                id: upg.id,
+                name: upg.name,
+                pronunciation: upg.pronunciation,
+                type: upg.type,
+                country: upg.country,
+                population: parseInt(upg.population),
+                religion: upg.religion,
+                language: upg.language,
+                evangelical: parseFloat(upg.evangelical),
+                distance: upg.distance
+            }));
+
+        // Separate into FPGs and UUPGs
+        return {
+            fpgs: filteredGroups.filter(g => g.type.toLowerCase() === 'fpg'),
+            uupgs: filteredGroups.filter(g => g.type.toLowerCase() === 'uupg')
+        };
     }
 
     async addToTop100(groups) {
