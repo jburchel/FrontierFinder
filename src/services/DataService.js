@@ -1,6 +1,19 @@
 async function findGroupsWithinRadius(country, upgId, radius, radiusUnit, searchType) {
     try {
-        const url = `${process.env.REACT_APP_API_BASE_URL}/api/v2/people-groups?api-key=${process.env.REACT_APP_API_KEY}`;
+        // Build query parameters
+        const params = new URLSearchParams({
+            'api-key': process.env.JOSHUA_PROJECTAPI_KEY,
+            'country': country || '',
+            'radius': radius || '',
+            'rad-unit': radiusUnit || 'miles',
+            'search-type': searchType || 'both'
+        });
+        
+        if (upgId) {
+            params.append('upg', upgId);
+        }
+
+        const url = `https://api.joshuaproject.net/v1/people_groups.json?${params.toString()}`;
         console.log("Fetching from URL:", url);
         
         const response = await fetch(url);
@@ -13,11 +26,6 @@ async function findGroupsWithinRadius(country, upgId, radius, radiusUnit, search
         
         // Add logging to see the structure of the response
         console.log("API Response:", data);
-        
-        // Check if data has the expected structure
-        if (!Array.isArray(data)) {
-            throw new Error('Expected array of people groups but received different data structure');
-        }
 
         return data;
     } catch (error) {
