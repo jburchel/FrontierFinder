@@ -41,18 +41,12 @@ for file in $CHANGED_FILES; do
     COMMIT_MSG="$COMMIT_MSG\n- $CHANGE_TYPE $file"
 done
 
-# Show the generated message and ask for confirmation
-echo -e "\n${YELLOW}Generated commit message:${NC}"
+# Show the generated message
+echo -e "\n${YELLOW}Committing with message:${NC}"
 echo -e "$COMMIT_MSG"
-echo -e "\n${YELLOW}Press Enter to use this message or type a new one:${NC}"
-read user_message
 
-# Use user message if provided, otherwise use generated message
-if [ -z "$user_message" ]; then
-    git commit -m "$COMMIT_MSG"
-else
-    git commit -m "$user_message"
-fi
+# Commit with generated message
+git commit -m "$COMMIT_MSG"
 
 # Push to remote
 echo -e "\n${YELLOW}Pushing to remote...${NC}"
