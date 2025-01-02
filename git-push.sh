@@ -20,17 +20,39 @@ git add .
 echo -e "\n${YELLOW}Current status:${NC}"
 git status
 
-# Prompt for commit message
-echo -e "\n${YELLOW}Enter commit message (press enter to use timestamp as message):${NC}"
-read commit_message
+# Generate commit message based on changed files
+CHANGED_FILES=$(git diff --cached --name-only)
+COMMIT_MSG="Updated:"
 
-# If no message provided, use timestamp
-if [ -z "$commit_message" ]; then
-    commit_message="Update $TIMESTAMP"
+# Process each changed file
+for file in $CHANGED_FILES; do
+    # Get the type of change (modified, added, deleted)
+    if [ -f "$file" ]; then
+        if git ls-files --error-unmatch "$file" >/dev/null 2>&1; then
+            CHANGE_TYPE="Modified"
+        else
+            CHANGE_TYPE="Added"
+        fi
+    else
+        CHANGE_TYPE="Deleted"
+    fi
+    
+    # Add to commit message
+    COMMIT_MSG="$COMMIT_MSG\n- $CHANGE_TYPE $file"
+done
+
+# Show the generated message and ask for confirmation
+echo -e "\n${YELLOW}Generated commit message:${NC}"
+echo -e "$COMMIT_MSG"
+echo -e "\n${YELLOW}Press Enter to use this message or type a new one:${NC}"
+read user_message
+
+# Use user message if provided, otherwise use generated message
+if [ -z "$user_message" ]; then
+    git commit -m "$COMMIT_MSG"
+else
+    git commit -m "$user_message"
 fi
-
-# Commit changes
-git commit -m "$commit_message"
 
 # Push to remote
 echo -e "\n${YELLOW}Pushing to remote...${NC}"
