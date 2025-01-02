@@ -7,7 +7,6 @@ A web application to find Frontier People Groups (FPGs) and Unreached Unengaged 
 - Country and UPG selection from existing Crossover Global locations
 - Search for FPGs and UUPGs within a specified radius
 - Results sorting by distance, population, and evangelical percentage
-- Filtering by language, religion, and evangelical percentage
 - Phonetic pronunciation display and audio playback for UPG names
 - Top 100 list management
 - Interactive map visualization
