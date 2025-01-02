@@ -16,20 +16,27 @@ async function findGroupsWithinRadius(country, upgId, radius, radiusUnit, search
         const url = `https://api.joshuaproject.net/v1/people_groups.json?${params.toString()}`;
         console.log("Fetching from URL:", url);
         
-        const response = await fetch(url);
-        const data = await response.json();
-        
-        // Add error checking
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Origin': window.location.origin
+            },
+            mode: 'cors'
+        });
+
         if (!response.ok) {
-            throw new Error(`API request failed: ${data.message || response.statusText}`);
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        // Add logging to see the structure of the response
+        const data = await response.json();
         console.log("API Response:", data);
-
         return data;
+
     } catch (error) {
         console.error("Error in findGroupsWithinRadius:", error);
-        throw error;
+        // Return empty array instead of throwing to prevent UI crashes
+        return [];
     }
 } 
